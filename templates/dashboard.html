@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ana Sayfa - Kütüphane</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f7fa;
+        }
+        
+        .navbar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .navbar h1 {
+            font-size: 24px;
+        }
+        
+        .navbar .user-info {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+        
+        .btn {
+            padding: 8px 20px;
+            background: white;
+            color: #667eea;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+        
+        .search-bar {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        
+        .search-bar input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+        
+        .books-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+        }
+        
+        .book-card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            transition: transform 0.3s;
+        }
+        
+        .book-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+        
+        .book-card h3 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 18px;
+        }
+        
+        .book-info {
+            color: #666;
+            font-size: 14px;
+            margin: 5px 0;
+        }
+        
+        .book-stock {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-top: 10px;
+        }
+        
+        .stock-available {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .stock-unavailable {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .btn-borrow {
+            width: 100%;
+            margin-top: 15px;
+            padding: 10px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        
+        .btn-borrow:hover {
+            background: #5568d3;
+        }
+        
+        .btn-borrow:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        
+        .menu-links {
+            display: flex;
+            gap: 15px;
+        }
+        
+        .menu-links a {
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        
+        .alert {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+        }
+        
+        .alert.success {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .alert.error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .alert.show {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <h1>📚 Kütüphane Sistemi</h1>
+        <div class="user-info">
+            <div class="menu-links">
+                <a href="dashboard.html">Ana Sayfa</a>
+                <a href="my_loans.html">Ödünçlerim</a>
+                <a href="#" id="adminLink" style="display:none;">Admin Panel</a>
+            </div>
+            <span id="userName"></span>
+            <button class="btn" onclick="logout()">Çıkış</button>
+        </div>
+    </div>
+    
+    <div class="container">
+        <div id="alertBox" class="alert"></div>
+        
+        <div class="search-bar">
+            <input type="text" id="searchInput" placeholder="🔍 Kitap ara..." onkeyup="searchBooks()">
+        </div>
+        
+        <div id="booksGrid" class="books-grid"></div>
+    </div>
+    
+    <script>
+        const API_URL = 'http://localhost:5000/api';
+        let allBooks = [];
+        
+        window.onload = function() {
+            const token = localStorage.getItem('token');
+            const user = JSON.parse(localStorage.getItem('user') || '{}');
+            
+            if (!token) {
+                window.location.href = 'login.html';
+                return;
+            }
+            
+            document.getElementById('userName').textContent = user.kullanici_adsoyad || 'Kullanıcı';
+            
+            if (user.kullanici_rol === 'admin') {
+                document.getElementById('adminLink').style.display = 'block';
+                document.getElementById('adminLink').href = 'books.html';
+            }
+            
+            loadBooks();
+        };
+        
+        function showAlert(message, type) {
+            const alertBox = document.getElementById('alertBox');
+            alertBox.textContent = message;
+            alertBox.className = `alert ${type} show`;
+            setTimeout(() => alertBox.classList.remove('show'), 5000);
+        }
+        
+        async function loadBooks() {
+            const token = localStorage.getItem('token');
+            
+            try {
+                const response = await fetch(`${API_URL}/books/`, {
+                    headers: {'Authorization': `Bearer ${token}`}
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    allBooks = data.books;
+                    displayBooks(allBooks);
+                }
+            } catch (error) {
+                showAlert('Kitaplar yüklenirken hata oluştu!', 'error');
+            }
+        }
+        
+        function displayBooks(books) {
+            const grid = document.getElementById('booksGrid');
+            
+            if (books.length === 0) {
+                grid.innerHTML = '<p style="text-align:center; grid-column: 1/-1;">Kitap bulunamadı.</p>';
+                return;
+            }
+            
+            grid.innerHTML = books.map(book => `
+                <div class="book-card">
+                    <h3>${book.baslik}</h3>
+                    <div class="book-info">👤 ${book.yazar_ad || 'Bilinmeyen'} ${book.yazar_soyad || ''}</div>
+                    <div class="book-info">📁 ${book.katagori_adi || 'Kategori yok'}</div>
+                    <div class="book-info">📅 ${book.yayin_yili || '-'}</div>
+                    <span class="book-stock ${book.musait_adet > 0 ? 'stock-available' : 'stock-unavailable'}">
+                        ${book.musait_adet > 0 ? `✓ ${book.musait_adet} adet mevcut` : '✗ Stokta yok'}
+                    </span>
+                    <button class="btn-borrow" 
+                            onclick="borrowBook(${book.kitapID})" 
+                            ${book.musait_adet <= 0 ? 'disabled' : ''}>
+                        Ödünç Al
+                    </button>
+                </div>
+            `).join('');
+        }
+        
+        function searchBooks() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const filtered = allBooks.filter(book => 
+                book.baslik.toLowerCase().includes(searchTerm) ||
+                (book.yazar_ad && book.yazar_ad.toLowerCase().includes(searchTerm)) ||
+                (book.yazar_soyad && book.yazar_soyad.toLowerCase().includes(searchTerm))
+            );
+            displayBooks(filtered);
+        }
+        
+        async function borrowBook(kitapID) {
+            const token = localStorage.getItem('token');
+            
+            if (!confirm('Bu kitabı ödünç almak istediğinizden emin misiniz?')) return;
+            
+            try {
+                const response = await fetch(`${API_URL}/loans/borrow`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ kitapID })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showAlert('Kitap başarıyla ödünç alındı!', 'success');
+                    loadBooks();
+                } else {
+                    showAlert(data.message, 'error');
+                }
+            } catch (error) {
+                showAlert('İşlem sırasında hata oluştu!', 'error');
+            }
+        }
+        
+        function logout() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            window.location.href = 'login.html';
+        }
+    </script>
+</body>
+</html>

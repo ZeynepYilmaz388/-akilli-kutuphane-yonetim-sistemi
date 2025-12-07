@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ödünçlerim - Kütüphane</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f7fa;
+        }
+        
+        .navbar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .navbar h1 {
+            font-size: 24px;
+        }
+        
+        .menu-links {
+            display: flex;
+            gap: 15px;
+        }
+        
+        .menu-links a {
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        
+        .btn {
+            padding: 8px 20px;
+            background: white;
+            color: #667eea;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+        
+        .loans-table {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        th {
+            background: #f8f9fa;
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        td {
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .status-badge {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .status-odunc {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .status-iade {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .status-gecikme {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .btn-return {
+            padding: 8px 16px;
+            background: #28a745;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        
+        .btn-return:hover {
+            background: #218838;
+        }
+        
+        .user-info {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+        
+        .alert {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+        }
+        
+        .alert.success {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .alert.error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .alert.show {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <h1>📚 Ödünçlerim</h1>
+        <div class="user-info">
+            <div class="menu-links">
+                <a href="dashboard.html">Ana Sayfa</a>
+                <a href="my_loans.html">Ödünçlerim</a>
+            </div>
+            <button class="btn" onclick="logout()">Çıkış</button>
+        </div>
+    </div>
+    
+    <div class="container">
+        <div id="alertBox" class="alert"></div>
+        
+        <div class="loans-table">
+            <h2 style="margin-bottom: 20px;">Ödünç Aldığım Kitaplar</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Kitap</th>
+                        <th>Yazar</th>
+                        <th>Ödünç Tarihi</th>
+                        <th>İade Tarihi</th>
+                        <th>Durum</th>
+                        <th>İşlem</th>
+                    </tr>
+                </thead>
+                <tbody id="loansTableBody"></tbody>
+            </table>
+        </div>
+    </div>
+    
+    <script>
+        const API_URL = 'http://localhost:5000/api';
+        
+        window.onload = function() {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                window.location.href = 'login.html';
+                return;
+            }
+            loadMyLoans();
+        };
+        
+        function showAlert(message, type) {
+            const alertBox = document.getElementById('alertBox');
+            alertBox.textContent = message;
+            alertBox.className = `alert ${type} show`;
+            setTimeout(() => alertBox.classList.remove('show'), 5000);
+        }
+        
+        async function loadMyLoans() {
+            const token = localStorage.getItem('token');
+            
+            try {
+                const response = await fetch(`${API_URL}/loans/my-loans`, {
+                    headers: {'Authorization': `Bearer ${token}`}
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    displayLoans(data.loans);
+                }
+            } catch (error) {
+                showAlert('Ödünçler yüklenirken hata oluştu!', 'error');
+            }
+        }
+        
+        function displayLoans(loans) {
+            const tbody = document.getElementById('loansTableBody');
+            
+            if (loans.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Ödünç kaydı bulunamadı.</td></tr>';
+                return;
+            }
+            
+            tbody.innerHTML = loans.map(loan => `
+                <tr>
+                    <td>${loan.baslik}</td>
+                    <td>${loan.yazar}</td>
+                    <td>${new Date(loan.odunc_tarihi).toLocaleDateString('tr-TR')}</td>
+                    <td>${new Date(loan.iade_tarihi).toLocaleDateString('tr-TR')}</td>
+                    <td>
+                        <span class="status-badge status-${loan.durum}">
+                            ${loan.durum === 'odunc' ? 'Ödünçte' : loan.durum === 'iade' ? 'İade Edildi' : 'Gecikme'}
+                        </span>
+                        ${loan.gecikme_gun > 0 ? `<span style="color:red; font-size:12px;">(${loan.gecikme_gun} gün gecikme)</span>` : ''}
+                    </td>
+                    <td>
+                        ${loan.durum === 'odunc' ? 
+                            `<button class="btn-return" onclick="returnBook(${loan.oduncID})">İade Et</button>` : 
+                            '-'}
+                    </td>
+                </tr>
+            `).join('');
+        }
+        
+        async function returnBook(oduncID) {
+            const token = localStorage.getItem('token');
+            
+            if (!confirm('Bu kitabı iade etmek istediğinizden emin misiniz?')) return;
+            
+            try {
+                const response = await fetch(`${API_URL}/loans/return/${oduncID}`, {
+                    method: 'POST',
+                    headers: {'Authorization': `Bearer ${token}`}
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showAlert('Kitap başarıyla iade edildi!', 'success');
+                    loadMyLoans();
+                } else {
+                    showAlert(data.message, 'error');
+                }
+            } catch (error) {
+                showAlert('İşlem sırasında hata oluştu!', 'error');
+            }
+        }
+        
+        function logout() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            window.location.href = 'login.html';
+        }
+    </script>
+</body>
+</html>
