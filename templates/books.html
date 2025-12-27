@@ -3,332 +3,290 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Panel - Kitap Yönetimi</title>
+    <title>Kitaplar - Kütüphane</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #f5f7fa;
-        }
-        
-        .navbar {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 15px 30px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+            min-height: 100vh;
         }
-        
-        .menu-links a {
-            color: white;
-            text-decoration: none;
-            margin: 0 15px;
+        .navbar {
+            background: rgba(255, 255, 255, 0.95) !important;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
-        
-        .container {
-            max-width: 1200px;
-            margin: 30px auto;
-            padding: 0 20px;
-        }
-        
-        .admin-section {
-            background: white;
-            border-radius: 10px;
-            padding: 30px;
-            margin-bottom: 30px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-        }
-        
-        .form-group {
-            margin-bottom: 15px;
-        }
-        
-        label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: 600;
-            color: #333;
-        }
-        
-        input, select {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            font-size: 14px;
-        }
-        
-        .btn {
-            padding: 10px 20px;
-            background: #667eea;
-            color: white;
+        .card {
             border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: 600;
-            margin-right: 10px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s;
         }
-        
-        .btn:hover {
-            background: #5568d3;
-        }
-        
-        .btn-danger {
-            background: #dc3545;
-        }
-        
-        .btn-danger:hover {
-            background: #c82333;
-        }
-        
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-        
-        th {
-            background: #f8f9fa;
-            padding: 12px;
-            text-align: left;
-            font-weight: 600;
-        }
-        
-        td {
-            padding: 12px;
-            border-bottom: 1px solid #eee;
-        }
-        
-        .alert {
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            display: none;
-        }
-        
-        .alert.success {
-            background: #d4edda;
-            color: #155724;
-        }
-        
-        .alert.error {
-            background: #f8d7da;
-            color: #721c24;
-        }
-        
-        .alert.show {
-            display: block;
+        .card:hover {
+            transform: translateY(-5px);
         }
     </style>
 </head>
 <body>
-    <div class="navbar">
-        <h1>📚 Admin Panel - Kitap Yönetimi</h1>
-        <div class="menu-links">
-            <a href="dashboard.html">Ana Sayfa</a>
-            <a href="books.html">Kitap Yönetimi</a>
-            <button class="btn" onclick="logout()">Çıkış</button>
+    {% include 'navbar.html' %}
+    
+    <div class="container mt-5">
+        <div class="row mb-4">
+            <div class="col-12">
+                <h1 class="text-white fw-bold">
+                    <i class="fas fa-books"></i> Kitaplar
+                </h1>
+            </div>
+        </div>
+        
+        <div id="booksContainer" class="row">
+            <div class="col-12 text-center">
+                <div class="spinner-border text-white" role="status">
+                    <span class="visually-hidden">Yükleniyor...</span>
+                </div>
+                <p class="text-white mt-3">Kitaplar yükleniyor...</p>
+            </div>
         </div>
     </div>
     
-    <div class="container">
-        <div id="alertBox" class="alert"></div>
-        
-        <!-- Kitap Ekleme Formu -->
-        <div class="admin-section">
-            <h2>Yeni Kitap Ekle</h2>
-            <form onsubmit="addBook(event)">
-                <div class="form-group">
-                    <label>Kitap Başlığı</label>
-                    <input type="text" id="bookTitle" required>
-                </div>
-                <div class="form-group">
-                    <label>Yazar</label>
-                    <select id="bookAuthor" required></select>
-                </div>
-                <div class="form-group">
-                    <label>Kategori</label>
-                    <select id="bookCategory" required></select>
-                </div>
-                <div class="form-group">
-                    <label>Yayın Yılı</label>
-                    <input type="number" id="bookYear" min="1800" max="2024" required>
-                </div>
-                <div class="form-group">
-                    <label>Stok Adedi</label>
-                    <input type="number" id="bookStock" min="0" required>
-                </div>
-                <button type="submit" class="btn">Kitap Ekle</button>
-            </form>
-        </div>
-        
-        <!-- Kitap Listesi -->
-        <div class="admin-section">
-            <h2>Tüm Kitaplar</h2>
-            <table>
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Başlık</th>
-                        <th>Yazar</th>
-                        <th>Kategori</th>
-                        <th>Yıl</th>
-                        <th>Stok</th>
-                        <th>Müsait</th>
-                        <th>İşlemler</th>
-                    </tr>
-                </thead>
-                <tbody id="booksTableBody"></tbody>
-            </table>
-        </div>
-    </div>
-    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        const API_URL = 'http://localhost:5000/api';
-        
-        window.onload = function() {
-            const token = localStorage.getItem('token');
-            const user = JSON.parse(localStorage.getItem('user') || '{}');
-            
-            if (!token || user.kullanici_rol !== 'admin') {
-                alert('Bu sayfaya erişim yetkiniz yok!');
-                window.location.href = 'dashboard.html';
-                return;
-            }
-            
-            loadAuthors();
-            loadCategories();
-            loadBooks();
-        };
-        
-        function showAlert(message, type) {
-            const alertBox = document.getElementById('alertBox');
-            alertBox.textContent = message;
-            alertBox.className = `alert ${type} show`;
-            setTimeout(() => alertBox.classList.remove('show'), 5000);
-        }
-        
-        async function loadAuthors() {
-            const token = localStorage.getItem('token');
-            const response = await fetch(`${API_URL}/authors/`, {
-                headers: {'Authorization': `Bearer ${token}`}
-            });
-            const data = await response.json();
-            
-            const select = document.getElementById('bookAuthor');
-            select.innerHTML = data.authors.map(a => 
-                `<option value="${a.yazarID}">${a.yazar_ad} ${a.yazar_soyad}</option>`
-            ).join('');
-        }
-        
-        async function loadCategories() {
-            const token = localStorage.getItem('token');
-            const response = await fetch(`${API_URL}/categories/`, {
-                headers: {'Authorization': `Bearer ${token}`}
-            });
-            const data = await response.json();
-            
-            const select = document.getElementById('bookCategory');
-            select.innerHTML = data.categories.map(c => 
-                `<option value="${c.kategoriID}">${c.katagori_adi}</option>`
-            ).join('');
+        const token = localStorage.getItem('token');
+        if (!token) {
+            window.location.href = '/login';
         }
         
         async function loadBooks() {
-            const token = localStorage.getItem('token');
-            const response = await fetch(`${API_URL}/books/`, {
-                headers: {'Authorization': `Bearer ${token}`}
-            });
-            const data = await response.json();
-            
-            const tbody = document.getElementById('booksTableBody');
-            tbody.innerHTML = data.books.map(book => `
-                <tr>
-                    <td>${book.kitapID}</td>
-                    <td>${book.baslik}</td>
-                    <td>${book.yazar_ad} ${book.yazar_soyad}</td>
-                    <td>${book.katagori_adi}</td>
-                    <td>${book.yayin_yili}</td>
-                    <td>${book.stok_adedi}</td>
-                    <td>${book.musait_adet}</td>
-                    <td>
-                        <button class="btn btn-danger" onclick="deleteBook(${book.kitapID})">Sil</button>
-                    </td>
-                </tr>
-            `).join('');
-        }
-        
-        async function addBook(event) {
-            event.preventDefault();
-            const token = localStorage.getItem('token');
-            
-            const bookData = {
-                baslik: document.getElementById('bookTitle').value,
-                yazarID: document.getElementById('bookAuthor').value,
-                kategoriID: document.getElementById('bookCategory').value,
-                yayin_yili: document.getElementById('bookYear').value,
-                stok_adedi: document.getElementById('bookStock').value
-            };
-            
             try {
-                const response = await fetch(`${API_URL}/books/`, {
-                    method: 'POST',
-                    headers: {
+                const response = await fetch('/api/books/', {
+                    headers: { 
                         'Authorization': `Bearer ${token}`,
                         'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(bookData)
+                    }
                 });
                 
-                const data = await response.json();
-                
-                if (data.success) {
-                    showAlert('Kitap başarıyla eklendi!', 'success');
-                    event.target.reset();
-                    loadBooks();
-                } else {
-                    showAlert(data.message, 'error');
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
                 }
+                
+                const data = await response.json();
+                console.log('API Response:', data);
+                
+                // Backend'den gelen veriyi parse et
+                let books = [];
+                if (data.success && data.books) {
+                    books = data.books;
+                } else if (Array.isArray(data)) {
+                    books = data;
+                } else if (data.books) {
+                    books = data.books;
+                } else if (data.data) {
+                    books = data.data;
+                }
+                
+                console.log('Parsed books:', books);
+                
+                // Backend field isimleriyle normalize et
+                const normalizedBooks = books.map(book => ({
+                    id: book.kitapid || book.id,
+                    title: book.baslik || book.title || 'Başlık Yok',
+                    author: (book.yazar_ad && book.yazar_soyad) 
+                        ? `${book.yazar_ad} ${book.yazar_soyad}` 
+                        : (book.author || 'Belirtilmemiş'),
+                    isbn: book.isbn || '-',
+                    category: book.katagori_adi || book.category || 'Belirtilmemiş',
+                    available: (book.musait_adet > 0) || book.available || false,
+                    yayin_yili: book.yayin_yili
+                }));
+                
+                console.log('Normalized books:', normalizedBooks);
+                
+                if (normalizedBooks.length === 0) {
+                    throw new Error('Veritabanında kitap bulunamadı');
+                }
+                
+                displayBooks(normalizedBooks);
+                
             } catch (error) {
-                showAlert('Hata oluştu!', 'error');
+                console.error('API hatası, test verisi gösteriliyor:', error);
+                
+                // TEST VERİSİ
+                const testBooks = [
+                    {
+                        id: 1,
+                        title: '1984',
+                        author: 'George Orwell',
+                        isbn: '978-0451524935',
+                        category: 'Distopya',
+                        available: true,
+                        yayin_yili: 1949
+                    },
+                    {
+                        id: 2,
+                        title: 'Suç ve Ceza',
+                        author: 'Fyodor Dostoyevski',
+                        isbn: '978-0143058144',
+                        category: 'Klasik',
+                        available: true,
+                        yayin_yili: 1866
+                    },
+                    {
+                        id: 3,
+                        title: 'Şeker Portakalı',
+                        author: 'Jose Mauro de Vasconcelos',
+                        isbn: '978-9750719387',
+                        category: 'Roman',
+                        available: false,
+                        yayin_yili: 1968
+                    },
+                    {
+                        id: 4,
+                        title: 'Satranç',
+                        author: 'Stefan Zweig',
+                        isbn: '978-9750718544',
+                        category: 'Hikaye',
+                        available: true,
+                        yayin_yili: 1941
+                    },
+                    {
+                        id: 5,
+                        title: 'Simyacı',
+                        author: 'Paulo Coelho',
+                        isbn: '978-0062315007',
+                        category: 'Felsefe',
+                        available: true,
+                        yayin_yili: 1988
+                    },
+                    {
+                        id: 6,
+                        title: 'Küçük Prens',
+                        author: 'Antoine de Saint-Exupéry',
+                        isbn: '978-0156012195',
+                        category: 'Masal',
+                        available: true,
+                        yayin_yili: 1943
+                    },
+                    {
+                        id: 7,
+                        title: 'Hayvan Çiftliği',
+                        author: 'George Orwell',
+                        isbn: '978-0451526342',
+                        category: 'Alegori',
+                        available: true,
+                        yayin_yili: 1945
+                    }
+                ];
+                
+                displayBooks(testBooks);
+                
+                const container = document.getElementById('booksContainer');
+                container.insertAdjacentHTML('afterbegin', `
+                    <div class="col-12 mb-3">
+                        <div class="alert alert-warning alert-dismissible fade show">
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            <h5><i class="fas fa-exclamation-triangle"></i> Uyarı: Test Modu</h5>
+                            <p class="mb-2"><strong>Backend veritabanı boş veya bağlantı yok, test verisi gösteriliyor.</strong></p>
+                            <hr>
+                            <small><strong>Hata:</strong> ${error.message}</small><br>
+                            <small><strong>Çözüm:</strong> Veritabanına kitap ekleyin veya backend'i kontrol edin.</small>
+                        </div>
+                    </div>
+                `);
             }
         }
         
-        async function deleteBook(kitapID) {
-            if (!confirm('Bu kitabı silmek istediğinizden emin misiniz?')) return;
+        function displayBooks(books) {
+            const container = document.getElementById('booksContainer');
             
-            const token = localStorage.getItem('token');
+            if (!books || books.length === 0) {
+                container.innerHTML = `
+                    <div class="col-12">
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle"></i> Henüz kitap bulunmuyor.
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+            
+            const booksHTML = books.map(book => `
+                <div class="col-md-4 mb-4">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between mb-3">
+                                <h5 class="card-title fw-bold">${book.title}</h5>
+                                <span class="badge ${book.available ? 'bg-success' : 'bg-danger'}">
+                                    ${book.available ? ' Mevcut' : ' Ödünçte'}
+                                </span>
+                            </div>
+                            <p class="text-muted mb-2">
+                                <i class="fas fa-user"></i> <strong>Yazar:</strong> ${book.author}
+                            </p>
+                            ${book.isbn !== '-' ? `
+                            <p class="text-muted mb-2">
+                                <i class="fas fa-barcode"></i> <strong>ISBN:</strong> ${book.isbn}
+                            </p>
+                            ` : ''}
+                            <p class="text-muted mb-2">
+                                <i class="fas fa-tag"></i> <strong>Kategori:</strong> ${book.category}
+                            </p>
+                            ${book.yayin_yili ? `
+                            <p class="text-muted mb-3">
+                                <i class="fas fa-calendar"></i> <strong>Yayın:</strong> ${book.yayin_yili}
+                            </p>
+                            ` : '<div class="mb-3"></div>'}
+                            ${book.available ? `
+                                <button class="btn btn-primary w-100" onclick="borrowBook(${book.id})">
+                                    <i class="fas fa-hand-holding-heart"></i> Ödünç Al
+                                </button>
+                            ` : `
+                                <button class="btn btn-secondary w-100" disabled>
+                                    <i class="fas fa-clock"></i> Müsait Değil
+                                </button>
+                            `}
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+            
+            const alertDiv = container.querySelector('.alert');
+            container.innerHTML = booksHTML;
+            if (alertDiv) {
+                container.insertAdjacentElement('afterbegin', alertDiv);
+            }
+        }
+        
+        async function borrowBook(bookId) {
+            if (!confirm('Bu kitabı ödünç almak istediğinize emin misiniz?')) return;
             
             try {
-                const response = await fetch(`${API_URL}/books/${kitapID}`, {
-                    method: 'DELETE',
-                    headers: {'Authorization': `Bearer ${token}`}
+                const response = await fetch(`/api/loans/borrow/${bookId}`, {
+                    method: 'POST',
+                    headers: { 
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
                 });
                 
                 const data = await response.json();
                 
-                if (data.success) {
-                    showAlert('Kitap başarıyla silindi!', 'success');
+                if (response.ok) {
+                    alert(' Kitap başarıyla ödünç alındı!');
                     loadBooks();
                 } else {
-                    showAlert(data.message, 'error');
+                    alert(' ' + (data.message || 'Hata oluştu'));
                 }
             } catch (error) {
-                showAlert('Hata oluştu!', 'error');
+                alert(' Hata: ' + error.message);
             }
         }
         
         function logout() {
-            localStorage.removeItem('token');
-            localStorage.removeItem('user');
-            window.location.href = 'login.html';
+            localStorage.clear();
+            window.location.href = '/login';
         }
+        
+        loadBooks();
     </script>
 </body>
 </html>

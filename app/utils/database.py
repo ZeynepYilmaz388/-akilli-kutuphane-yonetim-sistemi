@@ -28,9 +28,13 @@ class Database:
                 cursor.execute(query)
             
             if fetch_one:
-                return cursor.fetchone()
+                result = cursor.fetchone()
+                conn.commit()
+                return result
             elif fetch:
-                return cursor.fetchall()
+                result = cursor.fetchall()
+                conn.commit()
+                return result
             else:
                 conn.commit()
                 return cursor.rowcount

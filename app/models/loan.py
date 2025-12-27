@@ -23,11 +23,12 @@ class Loan:
     
     @staticmethod
     def from_db_row(row):
+        #veritabanından gelen satırı alır ve Loan nesnesine dönüştürür
         if row:
             return Loan(
-                oduncID=row['oduncID'],
-                kitapID=row['kitapID'],
-                kullaniciID=row['kullaniciID'],
+                oduncID=row.get('oduncid'),
+                kitapID=row.get('kitapid'),
+                kullaniciID=row.get('kullaniciid'),
                 odunc_tarihi=row.get('odunc_tarihi'),
                 iade_tarihi=row.get('iade_tarihi'),
                 gercek_iade_tarihi=row.get('gercek_iade_tarihi'),

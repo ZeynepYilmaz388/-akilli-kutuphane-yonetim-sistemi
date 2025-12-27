@@ -1,0 +1,109 @@
+<nav class="navbar navbar-expand-lg navbar-light">
+    <div class="container">
+        <a class="navbar-brand fw-bold" href="/dashboard">
+            <i class="fas fa-book-reader text-primary"></i> Akıllı Kütüphane
+        </a>
+        
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="/dashboard">
+                        <i class="fas fa-home"></i> Ana Sayfa
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/admin/books">
+                        <i class="fas fa-book"></i> Kitaplar
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/my-loans">
+                        <i class="fas fa-bookmark"></i> Ödünç Aldıklarım
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/penalties">
+                        <i class="fas fa-exclamation-circle text-danger"></i> Cezalar
+                    </a>
+                </li>
+                <!-- SADECE ADMİN İÇİN - BAŞLANGIÇTA GİZLİ -->
+                <li class="nav-item" id="adminLink" style="display: none;">
+                    <a class="nav-link" href="/admin">
+                        <i class="fas fa-crown text-warning"></i> Admin Paneli
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/profile">
+                        <i class="fas fa-user"></i> <span id="userName">Kullanıcı</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link text-danger" href="#" onclick="logout()">
+                        <i class="fas fa-sign-out-alt"></i> Çıkış
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<script>
+// Navbar için ortak script
+(function() {
+    const token = localStorage.getItem('token');
+    if (!token) {
+        window.location.href = '/login';
+        return;
+    }
+
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    
+    // DEBUG: Console'a yazdır
+    console.log('🔍 Navbar - User data:', user);
+    console.log('🔍 Navbar - Checking roles:', {
+        kullanici_rol: user.kullanici_rol,
+        rol: user.rol,
+        role: user.role
+    });
+    
+    // Admin kontrolü - TÜM OLASI ALAN ADLARINI KONTROL ET
+    const isAdmin = (user.kullanici_rol === 'admin') || 
+                    (user.rol === 'admin') || 
+                    (user.role === 'admin');
+    
+    console.log('🔍 Navbar - Is admin?', isAdmin);
+    
+    // Admin linkini göster/gizle
+    const adminLink = document.getElementById('adminLink');
+    if (adminLink) {
+        if (isAdmin) {
+            console.log(' Admin kullanıcı tespit edildi - Admin Paneli gösteriliyor');
+            adminLink.style.display = 'block';
+        } else {
+            console.log(' Normal kullanıcı - Admin Paneli gizli');
+            adminLink.style.display = 'none';
+        }
+    } else {
+        console.error(' adminLink elementi bulunamadı!');
+    }
+    
+    // Kullanıcı adını göster
+    const userName = document.getElementById('userName');
+    if (userName) {
+        const displayName = user.kullanici_adsoyad || user.name || user.full_name || 'Kullanıcı';
+        userName.textContent = displayName;
+        console.log('👤 Kullanıcı adı:', displayName);
+    }
+})();
+
+function logout() {
+    console.log('🚪 Çıkış yapılıyor...');
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    window.location.href = '/login';
+}
+</script>

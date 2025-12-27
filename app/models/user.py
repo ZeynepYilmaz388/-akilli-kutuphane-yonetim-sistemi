@@ -19,13 +19,14 @@ class User:
     
     @staticmethod
     def from_db_row(row):
+        #veritabanından gelen satırı alır ve User nesnesine dönüştürür
         if row:
             return User(
-                kullaniciID=row['kullaniciID'],
-                kullanici_adsoyad=row['kullanici_adsoyad'],
-                kullanici_sifre=row['kullanici_sifre'],
-                kullanici_rol=row['kullanici_rol'],
-                kullanici_eposta=row['kullanici_eposta'],
+                kullaniciID=int(row.get('kullaniciid')),  # ← int() eklendi!
+                kullanici_adsoyad=row.get('kullanici_adsoyad'),
+                kullanici_sifre=row.get('kullanici_sifre'),
+                kullanici_rol=row.get('kullanici_rol'),
+                kullanici_eposta=row.get('kullanici_eposta'),
                 kayit_tarihi=row.get('kayit_tarihi')
             )
         return None

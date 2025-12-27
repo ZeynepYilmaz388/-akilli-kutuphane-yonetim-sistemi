@@ -11,15 +11,12 @@ class AuthService:
     def register(kullanici_adsoyad, email, password, rol='ogrenci'):
         """Yeni kullanıcı kaydı oluşturur"""
         try:
-            # Email kontrolü
             existing_user = UserRepository.find_by_email(email)
             if existing_user:
                 return {'success': False, 'message': 'Bu email adresi zaten kayıtlı!'}
             
-            # Şifreyi hashle
             hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
             
-            # Yeni kullanıcı oluştur
             user = User(
                 kullanici_adsoyad=kullanici_adsoyad,
                 kullanici_sifre=hashed_password,
@@ -27,35 +24,47 @@ class AuthService:
                 kullanici_eposta=email
             )
             
-            UserRepository.create(user)
+            result = UserRepository.create(user)
             
-            return {'success': True, 'message': 'Kayıt başarılı!'}
+            if result:
+                return {'success': True, 'message': 'Kayıt başarılı!'}
+            else:
+                return {'success': False, 'message': 'Kayıt sırasında bir hata oluştu!'}
         
         except Exception as e:
+            print(f"Register service hatası: {e}")
             return {'success': False, 'message': f'Kayıt hatası: {str(e)}'}
     
     @staticmethod
     def login(email, password):
         """Kullanıcı girişi yapar"""
         try:
-            # Kullanıcıyı bul
             user = UserRepository.find_by_email(email)
             
             if not user:
                 return {'success': False, 'message': 'Email veya şifre hatalı!'}
             
-            # Şifre kontrolü
             if not bcrypt.check_password_hash(user.kullanici_sifre, password):
                 return {'success': False, 'message': 'Email veya şifre hatalı!'}
             
-            # JWT token oluştur
+            # ÖNEMLİ: kullaniciID integer olmalı!
+            user_id = int(user.kullaniciID) if user.kullaniciID else None
+            
+            if not user_id:
+                print("HATA: kullaniciID bulunamadı!")
+                return {'success': False, 'message': 'Kullanıcı ID hatası!'}
+            
+            print(f"Token oluşturuluyor - User ID: {user_id} (type: {type(user_id)})")  # Debug
+            
             access_token = create_access_token(
-                identity=user.kullaniciID,
+                identity=str(user_id),  # ← integer olmalı!
                 additional_claims={
-                    'rol': user.kullanici_rol,
-                    'email': user.kullanici_eposta
+                    'rol': str(user.kullanici_rol),
+                    'email': str(user.kullanici_eposta)
                 }
             )
+            
+            print(f"Token başarıyla oluşturuldu!")  # Debug
             
             return {
                 'success': True,
@@ -65,6 +74,9 @@ class AuthService:
             }
         
         except Exception as e:
+            print(f"Login service hatası: {e}")
+            import traceback
+            traceback.print_exc()  # Tam hata detayı
             return {'success': False, 'message': f'Giriş hatası: {str(e)}'}
     
     @staticmethod
@@ -76,11 +88,9 @@ class AuthService:
             if not user:
                 return {'success': False, 'message': 'Kullanıcı bulunamadı!'}
             
-            # Eski şifre kontrolü
             if not bcrypt.check_password_hash(user.kullanici_sifre, old_password):
                 return {'success': False, 'message': 'Eski şifre hatalı!'}
             
-            # Yeni şifreyi hashle
             new_hashed_password = bcrypt.generate_password_hash(new_password).decode('utf-8')
             
             UserRepository.update_password(kullaniciID, new_hashed_password)

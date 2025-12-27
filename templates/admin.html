@@ -1,0 +1,821 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Paneli - Kütüphane</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .navbar {
+            background: rgba(255, 255, 255, 0.95) !important;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .card {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+        .stat-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transition: transform 0.3s;
+        }
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+        .tab-content {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin-top: 20px;
+        }
+        .nav-pills .nav-link {
+            border-radius: 10px;
+            padding: 12px 25px;
+            margin-right: 10px;
+        }
+        .nav-pills .nav-link.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .table-responsive {
+            border-radius: 10px;
+            overflow: hidden;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+   {% include 'navbar.html' %}
+
+    <div class="container mt-5">
+        <!-- Başlık -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card bg-gradient text-white" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                    <div class="card-body py-4">
+                        <h1 class="display-5 fw-bold">
+                            <i class="fas fa-crown"></i> Admin Paneli
+                        </h1>
+                        <p class="lead mb-0">Kütüphane Yönetim Sistemi</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- İstatistikler -->
+        <div class="row mb-4">
+            <div class="col-md-3 mb-3">
+                <div class="stat-card">
+                    <i class="fas fa-books fa-3x text-primary mb-3"></i>
+                    <h3 class="fw-bold" id="totalBooks">0</h3>
+                    <p class="text-muted mb-0">Toplam Kitap</p>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="stat-card">
+                    <i class="fas fa-users fa-3x text-success mb-3"></i>
+                    <h3 class="fw-bold" id="totalUsers">0</h3>
+                    <p class="text-muted mb-0">Kullanıcılar</p>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="stat-card">
+                    <i class="fas fa-bookmark fa-3x text-warning mb-3"></i>
+                    <h3 class="fw-bold" id="totalLoans">0</h3>
+                    <p class="text-muted mb-0">Aktif Ödünç</p>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="stat-card">
+                    <i class="fas fa-exclamation-triangle fa-3x text-danger mb-3"></i>
+                    <h3 class="fw-bold" id="overdueLoans">0</h3>
+                    <p class="text-muted mb-0">Gecikmiş</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabs -->
+        <ul class="nav nav-pills mb-3">
+            <li class="nav-item">
+                <button class="nav-link active" data-bs-toggle="pill" data-bs-target="#books-tab">
+                    <i class="fas fa-book"></i> Kitap Yönetimi
+                </button>
+            </li>
+            <li class="nav-item">
+                <button class="nav-link" data-bs-toggle="pill" data-bs-target="#users-tab">
+                    <i class="fas fa-users"></i> Kullanıcılar
+                </button>
+            </li>
+            <li class="nav-item">
+                <button class="nav-link" data-bs-toggle="pill" data-bs-target="#loans-tab">
+                    <i class="fas fa-list"></i> Ödünç Kayıtları
+                </button>
+            </li>
+        </ul>
+
+        <!-- Tab Content -->
+        <div class="tab-content">
+            <!-- Kitap Yönetimi -->
+            <div class="tab-pane fade show active" id="books-tab">
+                <div class="d-flex justify-content-between mb-4">
+                    <h3><i class="fas fa-book"></i> Kitap Listesi</h3>
+                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addBookModal">
+                        <i class="fas fa-plus"></i> Yeni Kitap Ekle
+                    </button>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>#</th>
+                                <th>Başlık</th>
+                                <th>Yazar</th>
+                                <th>Kategori</th>
+                                <th>Yıl</th>
+                                <th>Stok</th>
+                                <th>İşlemler</th>
+                            </tr>
+                        </thead>
+                        <tbody id="booksTableBody">
+                            <tr><td colspan="7" class="text-center">Yükleniyor...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Kullanıcılar -->
+            <div class="tab-pane fade" id="users-tab">
+                <h3 class="mb-4"><i class="fas fa-users"></i> Kullanıcı Listesi</h3>
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>ID</th>
+                                <th>Kullanıcı Adı</th>
+                                <th>Email</th>
+                                <th>Rol</th>
+                                <th>Aktif Ödünç</th>
+                            </tr>
+                        </thead>
+                        <tbody id="usersTableBody">
+                            <tr><td colspan="5" class="text-center">Yükleniyor...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Ödünç Kayıtları -->
+            <div class="tab-pane fade" id="loans-tab">
+                <h3 class="mb-4"><i class="fas fa-list"></i> Tüm Ödünç Kayıtları</h3>
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>ID</th>
+                                <th>Kullanıcı</th>
+                                <th>Kitap</th>
+                                <th>Ödünç Tarihi</th>
+                                <th>İade Tarihi</th>
+                                <th>Durum</th>
+                            </tr>
+                        </thead>
+                        <tbody id="loansTableBody">
+                            <tr><td colspan="6" class="text-center">Yükleniyor...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Kitap Ekle -->
+    <div class="modal fade" id="addBookModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fas fa-plus"></i> Yeni Kitap Ekle</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="addBookForm">
+                        <div class="mb-3">
+                            <label class="form-label">Kitap Başlığı *</label>
+                            <input type="text" class="form-control" id="bookTitle" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Yazar *</label>
+                            <div class="input-group">
+                                <select class="form-select" id="bookAuthor" required>
+                                    <option value="">Yazar Seçiniz...</option>
+                                </select>
+                                <button type="button" class="btn btn-outline-success" onclick="addNewAuthor()">
+                                    <i class="fas fa-plus"></i> Yeni
+                                </button>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Kategori *</label>
+                            <div class="input-group">
+                                <select class="form-select" id="bookCategory" required>
+                                    <option value="">Kategori Seçiniz...</option>
+                                </select>
+                                <button type="button" class="btn btn-outline-success" onclick="addNewCategory()">
+                                    <i class="fas fa-plus"></i> Yeni
+                                </button>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Yayın Yılı *</label>
+                            <input type="number" class="form-control" id="bookYear" min="1900" max="2099" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Stok Adedi *</label>
+                            <input type="number" class="form-control" id="bookStock" min="1" value="1" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="fas fa-save"></i> Kaydet
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Kitap Düzenle -->
+    <div class="modal fade" id="editBookModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fas fa-edit"></i> Kitap Düzenle</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="editBookForm">
+                        <input type="hidden" id="editBookId">
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Kitap Başlığı *</label>
+                            <input type="text" class="form-control" id="editBookTitle" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Yazar *</label>
+                            <select class="form-select" id="editBookAuthor" required>
+                                <option value="">Yazar Seçin...</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Kategori *</label>
+                            <select class="form-select" id="editBookCategory" required>
+                                <option value="">Kategori Seçin...</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Yayın Yılı *</label>
+                            <input type="number" class="form-control" id="editBookYear" min="1900" max="2099" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Stok Adedi *</label>
+                            <input type="number" class="form-control" id="editBookStock" min="1" required>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-success w-100">
+                            <i class="fas fa-save"></i> Güncelle
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const token = localStorage.getItem('token');
+        if (!token) window.location.href = '/login';
+
+        // Yazar ve Kategori Listelerini Yükle
+        async function loadAuthorsAndCategories() {
+            const authorSelect = document.getElementById('bookAuthor');
+            const categorySelect = document.getElementById('bookCategory');
+            const editAuthorSelect = document.getElementById('editBookAuthor');
+            const editCategorySelect = document.getElementById('editBookCategory');
+
+            try {
+                // Yazarları yükle
+                const authorsResponse = await fetch('/api/authors/', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (authorsResponse.ok) {
+                    const authorsData = await authorsResponse.json();
+                    const authors = authorsData.authors || [];
+                    
+                    authorSelect.innerHTML = '<option value="">Yazar Seçin...</option>';
+                    editAuthorSelect.innerHTML = '<option value="">Yazar Seçin...</option>';
+                    
+                    authors.forEach(author => {
+                        const option1 = document.createElement('option');
+                        const option2 = document.createElement('option');
+                        
+                        option1.value = author.yazarID || author.id;
+                        option1.textContent = `${author.yazar_ad} ${author.yazar_soyad}`;
+                        
+                        option2.value = author.yazarID || author.id;
+                        option2.textContent = `${author.yazar_ad} ${author.yazar_soyad}`;
+                        
+                        authorSelect.appendChild(option1);
+                        editAuthorSelect.appendChild(option2);
+                    });
+                    
+                    console.log(` ${authors.length} yazar yüklendi`);
+                } else {
+                    console.error(' Yazarlar yüklenemedi:', authorsResponse.status);
+                    authorSelect.innerHTML = '<option value="">Yazar yüklenemedi!</option>';
+                    editAuthorSelect.innerHTML = '<option value="">Yazar yüklenemedi!</option>';
+                }
+
+                // Kategorileri yükle
+                const categoriesResponse = await fetch('/api/categories/', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (categoriesResponse.ok) {
+                    const categoriesData = await categoriesResponse.json();
+                    const categories = categoriesData.categories || [];
+                    
+                    categorySelect.innerHTML = '<option value="">Kategori Seçin...</option>';
+                    editCategorySelect.innerHTML = '<option value="">Kategori Seçin...</option>';
+                    
+                    categories.forEach(category => {
+                        const option1 = document.createElement('option');
+                        const option2 = document.createElement('option');
+                        
+                        option1.value = category.kategoriID || category.id;
+                        option1.textContent = category.katagori_adi;
+                        
+                        option2.value = category.kategoriID || category.id;
+                        option2.textContent = category.katagori_adi;
+                        
+                        categorySelect.appendChild(option1);
+                        editCategorySelect.appendChild(option2);
+                    });
+                    
+                    console.log(` ${categories.length} kategori yüklendi`);
+                } else {
+                    console.error(' Kategoriler yüklenemedi:', categoriesResponse.status);
+                    categorySelect.innerHTML = '<option value="">Kategori yüklenemedi!</option>';
+                    editCategorySelect.innerHTML = '<option value="">Kategori yüklenemedi!</option>';
+                }
+
+            } catch (error) {
+                console.error(' Yazar/Kategori yükleme hatası:', error);
+                authorSelect.innerHTML = '<option value="">Hata oluştu!</option>';
+                categorySelect.innerHTML = '<option value="">Hata oluştu!</option>';
+                editAuthorSelect.innerHTML = '<option value="">Hata oluştu!</option>';
+                editCategorySelect.innerHTML = '<option value="">Hata oluştu!</option>';
+            }
+        }
+
+        // İstatistikleri yükle
+        async function loadStats() {
+            try {
+                const booksResponse = await fetch('/api/books/', {
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+                
+                if (booksResponse.ok) {
+                    const booksData = await booksResponse.json();
+                    const books = booksData.books || booksData || [];
+                    document.getElementById('totalBooks').textContent = books.length;
+                }
+                
+                const loansResponse = await fetch('/api/loans/all', {
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+                
+                if (loansResponse.ok) {
+                    const loansData = await loansResponse.json();
+                    const allLoans = loansData.loans || [];
+                    const activeLoans = allLoans.filter(loan => !loan.iade_durumu);
+                    const overdueLoans = allLoans.filter(loan => {
+                        if (loan.iade_durumu) return false;
+                        const dueDate = new Date(loan.iade_tarihi);
+                        return new Date() > dueDate;
+                    });
+                    
+                    document.getElementById('totalLoans').textContent = activeLoans.length;
+                    document.getElementById('overdueLoans').textContent = overdueLoans.length;
+                }
+                
+                document.getElementById('totalUsers').textContent = '5';
+                
+            } catch (error) {
+                console.error('İstatistik yükleme hatası:', error);
+                document.getElementById('totalBooks').textContent = '0';
+                document.getElementById('totalUsers').textContent = '0';
+                document.getElementById('totalLoans').textContent = '0';
+                document.getElementById('overdueLoans').textContent = '0';
+            }
+        }
+
+        // Kitapları yükle
+        async function loadBooks() {
+    const tbody = document.getElementById('booksTableBody');
+
+    try {
+        const response = await fetch('/api/books/', {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            console.log(' Books data:', data);  // ← DEBUG
+            
+            let books = [];
+            if (data.success && data.books) books = data.books;
+            else if (Array.isArray(data)) books = data;
+            else if (data.books) books = data.books;
+
+            console.log(' Books array:', books);  // ← DEBUG
+            
+            if (books.length > 0) {
+                displayBooks(books);
+            } else {
+                tbody.innerHTML = '<tr><td colspan="7" class="text-center">Kitap bulunamadı!</td></tr>';
+            }
+        }
+    } catch (error) {
+        console.error(' Load books error:', error);
+        tbody.innerHTML = '<tr><td colspan="7" class="text-center text-danger">Hata!</td></tr>';
+    }
+}
+        // Kitapları listele - DÜZELTİLMİŞ SIRALAMA
+       function displayBooks(books) {
+    const tbody = document.getElementById('booksTableBody');
+    
+    books.sort((a, b) => a.id - b.id);
+    
+    tbody.innerHTML = books.map((book, index) => {
+        const id = book.kitapid || book.id;  // ← Burada ID yakalanıyor
+        const title = book.baslik || book.title || 'Başlık Yok';
+        const author = (book.yazar_ad && book.yazar_soyad) 
+            ? `${book.yazar_ad} ${book.yazar_soyad}` 
+            : (book.author || 'Yazar Yok');
+        const category = book.katagori_adi || book.category || 'Kategori Yok';
+        const year = book.yayin_yili || book.year || '-';
+        const stock = book.stok_adedi || book.stock || 0;
+        
+        return `<tr>
+            <td>${index + 1}</td>
+            <td><strong>${title}</strong></td>
+            <td>${author}</td>
+            <td><span class="badge bg-secondary">${category}</span></td>
+            <td>${year}</td>
+            <td>${stock}</td>
+            <td>
+                <button class="btn btn-sm btn-warning me-1" onclick="editBook(${id})">
+                    <i class="fas fa-edit"></i>
+                </button>
+                <button class="btn btn-sm btn-danger" onclick="deleteBook(${id})">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </td>
+        </tr>`;
+    }).join('');
+}
+
+        // Kullanıcıları yükle
+        async function loadUsers() {
+            const tbody = document.getElementById('usersTableBody');
+
+            const testUsers = [
+                { id: 1, username: 'admin', email: 'admin@kutuphane.com', role: 'Admin', activeLoans: 0 },
+                { id: 2, username: 'zeynep', email: 'zeynep@ogrenci.com', role: 'Kullanıcı', activeLoans: 2 },
+                { id: 3, username: 'ahmet', email: 'ahmet@ogrenci.com', role: 'Kullanıcı', activeLoans: 1 },
+                { id: 4, username: 'ayse', email: 'ayse@ogrenci.com', role: 'Kullanıcı', activeLoans: 0 },
+                { id: 5, username: 'mehmet', email: 'mehmet@ogrenci.com', role: 'Kullanıcı', activeLoans: 0 }
+            ];
+
+            tbody.innerHTML = testUsers.map(user => `
+                <tr>
+                    <td>${user.id}</td>
+                    <td><strong>${user.username}</strong></td>
+                    <td>${user.email}</td>
+                    <td>
+                        <span class="badge ${user.role === 'Admin' ? 'bg-danger' : 'bg-primary'}">
+                            ${user.role}
+                        </span>
+                    </td>
+                    <td>
+                        <span class="badge bg-warning">${user.activeLoans} kitap</span>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // Ödünç kayıtlarını yükle
+        async function loadLoans() {
+            const tbody = document.getElementById('loansTableBody');
+
+            const testLoans = [
+                { id: 1, user: 'zeynep', book: '1984', borrowDate: '05.12.2024', dueDate: '19.12.2024', status: 'Aktif' },
+                { id: 2, user: 'zeynep', book: 'Suç ve Ceza', borrowDate: '01.12.2024', dueDate: '15.12.2024', status: 'Yaklaşıyor' },
+                { id: 3, user: 'ahmet', book: 'Şeker Portakalı', borrowDate: '20.11.2024', dueDate: '04.12.2024', status: 'Gecikmiş' },
+                { id: 4, user: 'ayse', book: 'Satranç', borrowDate: '25.11.2024', dueDate: '09.12.2024', status: 'İade Edildi' }
+            ];
+
+            tbody.innerHTML = testLoans.map(loan => {
+                let badgeClass = 'bg-success';
+                if (loan.status === 'Gecikmiş') badgeClass = 'bg-danger';
+                else if (loan.status === 'Yaklaşıyor') badgeClass = 'bg-warning';
+                else if (loan.status === 'İade Edildi') badgeClass = 'bg-secondary';
+
+                return `
+                    <tr>
+                        <td>${loan.id}</td>
+                        <td><strong>${loan.user}</strong></td>
+                        <td>${loan.book}</td>
+                        <td>${loan.borrowDate}</td>
+                        <td>${loan.dueDate}</td>
+                        <td><span class="badge ${badgeClass}">${loan.status}</span></td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // Kitap ekle form
+        document.getElementById('addBookForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const bookData = {
+                baslik: document.getElementById('bookTitle').value,
+                yazarID: parseInt(document.getElementById('bookAuthor').value),
+                kategoriID: parseInt(document.getElementById('bookCategory').value),
+                yayin_yili: parseInt(document.getElementById('bookYear').value),
+                stok_adedi: parseInt(document.getElementById('bookStock').value)
+            };
+
+            console.log(' Kitap ekleniyor:', bookData);
+
+            if (!bookData.yazarID || !bookData.kategoriID) {
+                alert(' Lütfen yazar ve kategori seçin!');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/books/', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(bookData)
+                });
+
+                const data = await response.json();
+                console.log(' Backend response:', data);
+
+                if (response.ok && data.success) {
+                    alert(' ' + data.message);
+                    bootstrap.Modal.getInstance(document.getElementById('addBookModal')).hide();
+                    document.getElementById('addBookForm').reset();
+                    loadBooks();
+                } else {
+                    alert(' Hata: ' + (data.message || 'Kitap eklenemedi!'));
+                }
+            } catch (error) {
+                console.error(' Kitap ekleme hatası:', error);
+                alert(' Bağlantı hatası: ' + error.message);
+            }
+        });
+
+        // Kitap düzenle - YENİ FONKSİYON
+   function editBook(id) {
+    console.log(' Edit book ID:', id);  // ← DEBUG
+    
+    if (!id) {
+        alert(' Kitap ID bulunamadı!');
+        return;
+    }
+    
+    fetch(`/api/books/${id}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+    })
+    .then(r => r.json())
+    .then(data => {
+        console.log(' Book data:', data);  // ← DEBUG
+        
+        if (data.success && data.book) {
+            const book = data.book;
+            
+            // Form alanlarını doldur
+            document.getElementById('editBookId').value = book.kitapid || book.id;
+            document.getElementById('editBookTitle').value = book.baslik || '';
+            document.getElementById('editBookAuthor').value = book.yazarid || book.yazarID || '';
+            document.getElementById('editBookCategory').value = book.kategoriid || book.kategoriID || '';
+            document.getElementById('editBookYear').value = book.yayin_yili || '';
+            document.getElementById('editBookStock').value = book.stok_adedi || '';
+            
+            // Modal'ı aç
+            const editModal = new bootstrap.Modal(document.getElementById('editBookModal'));
+            editModal.show();
+        } else {
+            alert(' Kitap bilgileri yüklenemedi!');
+        }
+    })
+    .catch(error => {
+        console.error(' Edit book error:', error);
+        alert(' Hata: ' + error.message);
+    });
+}
+
+        // Kitap düzenle form submit - YENİ FONKSİYON
+        document.getElementById('editBookForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const bookId = document.getElementById('editBookId').value;
+            const bookData = {
+                baslik: document.getElementById('editBookTitle').value.trim(),
+                yazarID: parseInt(document.getElementById('editBookAuthor').value),
+                kategoriID: parseInt(document.getElementById('editBookCategory').value),
+                yayin_yili: parseInt(document.getElementById('editBookYear').value),
+                stok_adedi: parseInt(document.getElementById('editBookStock').value)
+            };
+            
+            console.log(' Güncelleniyor:', bookData);
+            
+            if (!bookData.yazarID || !bookData.kategoriID) {
+                alert(' Lütfen yazar ve kategori seçin!');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/books/${bookId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': 'Bearer ' + token,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(bookData)
+                });
+                
+                const data = await response.json();
+                console.log(' Güncelleme cevabı:', data);
+                
+                if (response.ok && data.success) {
+                    alert(' ' + data.message);
+                    bootstrap.Modal.getInstance(document.getElementById('editBookModal')).hide();
+                    loadBooks();
+                } else {
+                    alert(' Hata: ' + (data.message || 'Güncelleme başarısız!'));
+                }
+            } catch (error) {
+                console.error(' Güncelleme hatası:', error);
+                alert(' Hata: ' + error.message);
+            }
+        });
+
+        // Kitap sil
+        function deleteBook(id) {
+            if (!confirm('Bu kitabı silmek istediğinize emin misiniz?')) return;
+
+            fetch(`/api/books/${id}`, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('' + data.message);
+                    loadBooks();
+                } else {
+                    alert(' Hata: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Silme hatası:', error);
+                alert(' Kitap silinemedi: ' + error.message);
+            });
+        }
+
+        // Yeni yazar ekle
+        async function addNewAuthor() {
+            const name = prompt(' Yazar Adı:\n\n(Örnek: Orhan)');
+            if (!name || name.trim() === '') {
+                alert(' Yazar adı boş olamaz!');
+                return;
+            }
+            
+            const surname = prompt(' Yazar Soyadı:\n\n(Örnek: Pamuk)');
+            if (!surname || surname.trim() === '') {
+                alert('Yazar soyadı boş olamaz!');
+                return;
+            }
+            
+            try {
+                console.log('Yeni yazar ekleniyor:', name, surname);
+                
+                const response = await fetch('/api/authors/', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': 'Bearer ' + token,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        yazar_ad: name.trim(),
+                        yazar_soyad: surname.trim()
+                    })
+                });
+                
+                const data = await response.json();
+                console.log(' Backend cevabı:', data);
+                
+                if (response.ok && data.success) {
+                    alert(' Yazar başarıyla eklendi!\n\n👤 ' + name + ' ' + surname);
+                    await loadAuthorsAndCategories();
+                    
+                    if (data.yazar && data.yazar.yazarid) {
+                        document.getElementById('bookAuthor').value = data.yazar.yazarid;
+                    }
+                } else {
+                    alert(' Hata: ' + (data.message || 'Yazar eklenemedi!'));
+                }
+            } catch (error) {
+                console.error(' Yazar ekleme hatası:', error);
+                alert(' Bağlantı hatası: ' + error.message);
+            }
+        }
+        
+        // Yeni kategori ekle
+        async function addNewCategory() {
+            const name = prompt(' Kategori Adı:\n\n(Örnek: Bilim Kurgu, Tarih, Biyografi...)');
+            if (!name || name.trim() === '') {
+                alert(' Kategori adı boş olamaz!');
+                return;
+            }
+            
+            try {
+                console.log(' Yeni kategori ekleniyor:', name);
+                
+                const response = await fetch('/api/categories/', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': 'Bearer ' + token,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        katagori_adi: name.trim()
+                    })
+                });
+                
+                const data = await response.json();
+                console.log(' Backend cevabı:', data);
+                
+                if (response.ok && data.success) {
+                    alert('Kategori başarıyla eklendi!\n\n ' + name);
+                    await loadAuthorsAndCategories();
+                    
+                    if (data.kategori && data.kategori.katagoriid) {
+                        document.getElementById('bookCategory').value = data.kategori.katagoriid;
+                    }
+                } else {
+                    alert(' Hata: ' + (data.message || 'Kategori eklenemedi!'));
+                }
+            } catch (error) {
+                console.error(' Kategori ekleme hatası:', error);
+                alert(' Bağlantı hatası: ' + error.message);
+            }
+        }
+
+        // Çıkış yap
+        function logout() {
+            localStorage.clear();
+            window.location.href = '/login';
+        }
+
+        // Sayfa yüklendiğinde
+        window.addEventListener('DOMContentLoaded', function() {
+            loadStats();
+            loadBooks();
+            loadUsers();
+            loadLoans();
+            loadAuthorsAndCategories();
+        });
+    </script>
+</body>
+</html>

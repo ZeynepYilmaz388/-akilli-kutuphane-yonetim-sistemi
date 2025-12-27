@@ -3,323 +3,189 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ana Sayfa - Kütüphane</title>
+    <title>Dashboard - Kütüphane</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #f5f7fa;
-        }
-        
-        .navbar {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 15px 30px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            min-height: 100vh;
         }
-        
-        .navbar h1 {
-            font-size: 24px;
+        .navbar {
+            background: rgba(255, 255, 255, 0.95) !important;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
-        
-        .navbar .user-info {
-            display: flex;
-            gap: 20px;
-            align-items: center;
-        }
-        
-        .btn {
-            padding: 8px 20px;
-            background: white;
-            color: #667eea;
+        .card {
             border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.3s;
-        }
-        
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-        }
-        
-        .container {
-            max-width: 1200px;
-            margin: 30px auto;
-            padding: 0 20px;
-        }
-        
-        .search-bar {
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-            margin-bottom: 30px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-        }
-        
-        .search-bar input {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            font-size: 16px;
-        }
-        
-        .books-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 20px;
-        }
-        
-        .book-card {
-            background: white;
-            border-radius: 10px;
-            padding: 20px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
             transition: transform 0.3s;
         }
-        
-        .book-card:hover {
+        .card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
         }
-        
-        .book-card h3 {
-            color: #333;
-            margin-bottom: 10px;
-            font-size: 18px;
+        .stat-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
         }
-        
-        .book-info {
-            color: #666;
-            font-size: 14px;
-            margin: 5px 0;
-        }
-        
-        .book-stock {
-            display: inline-block;
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 600;
-            margin-top: 10px;
-        }
-        
-        .stock-available {
-            background: #d4edda;
-            color: #155724;
-        }
-        
-        .stock-unavailable {
-            background: #f8d7da;
-            color: #721c24;
-        }
-        
-        .btn-borrow {
-            width: 100%;
-            margin-top: 15px;
-            padding: 10px;
-            background: #667eea;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 600;
-        }
-        
-        .btn-borrow:hover {
-            background: #5568d3;
-        }
-        
-        .btn-borrow:disabled {
-            background: #ccc;
-            cursor: not-allowed;
-        }
-        
-        .menu-links {
-            display: flex;
-            gap: 15px;
-        }
-        
-        .menu-links a {
-            color: white;
-            text-decoration: none;
-            font-weight: 500;
-        }
-        
-        .alert {
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            display: none;
-        }
-        
-        .alert.success {
-            background: #d4edda;
-            color: #155724;
-        }
-        
-        .alert.error {
-            background: #f8d7da;
-            color: #721c24;
-        }
-        
-        .alert.show {
-            display: block;
+        .stat-icon {
+            font-size: 3rem;
+            margin-bottom: 15px;
         }
     </style>
 </head>
 <body>
-    <div class="navbar">
-        <h1>📚 Kütüphane Sistemi</h1>
-        <div class="user-info">
-            <div class="menu-links">
-                <a href="dashboard.html">Ana Sayfa</a>
-                <a href="my_loans.html">Ödünçlerim</a>
-                <a href="#" id="adminLink" style="display:none;">Admin Panel</a>
-            </div>
-            <span id="userName"></span>
-            <button class="btn" onclick="logout()">Çıkış</button>
-        </div>
-    </div>
+   {% include 'navbar.html' %}
     
-    <div class="container">
-        <div id="alertBox" class="alert"></div>
-        
-        <div class="search-bar">
-            <input type="text" id="searchInput" placeholder="🔍 Kitap ara..." onkeyup="searchBooks()">
-        </div>
-        
-        <div id="booksGrid" class="books-grid"></div>
-    </div>
-    
-    <script>
-        const API_URL = 'http://localhost:5000/api';
-        let allBooks = [];
-        
-        window.onload = function() {
-            const token = localStorage.getItem('token');
-            const user = JSON.parse(localStorage.getItem('user') || '{}');
-            
-            if (!token) {
-                window.location.href = 'login.html';
-                return;
-            }
-            
-            document.getElementById('userName').textContent = user.kullanici_adsoyad || 'Kullanıcı';
-            
-            if (user.kullanici_rol === 'admin') {
-                document.getElementById('adminLink').style.display = 'block';
-                document.getElementById('adminLink').href = 'books.html';
-            }
-            
-            loadBooks();
-        };
-        
-        function showAlert(message, type) {
-            const alertBox = document.getElementById('alertBox');
-            alertBox.textContent = message;
-            alertBox.className = `alert ${type} show`;
-            setTimeout(() => alertBox.classList.remove('show'), 5000);
-        }
-        
-        async function loadBooks() {
-            const token = localStorage.getItem('token');
-            
-            try {
-                const response = await fetch(`${API_URL}/books/`, {
-                    headers: {'Authorization': `Bearer ${token}`}
-                });
-                
-                const data = await response.json();
-                
-                if (data.success) {
-                    allBooks = data.books;
-                    displayBooks(allBooks);
-                }
-            } catch (error) {
-                showAlert('Kitaplar yüklenirken hata oluştu!', 'error');
-            }
-        }
-        
-        function displayBooks(books) {
-            const grid = document.getElementById('booksGrid');
-            
-            if (books.length === 0) {
-                grid.innerHTML = '<p style="text-align:center; grid-column: 1/-1;">Kitap bulunamadı.</p>';
-                return;
-            }
-            
-            grid.innerHTML = books.map(book => `
-                <div class="book-card">
-                    <h3>${book.baslik}</h3>
-                    <div class="book-info">👤 ${book.yazar_ad || 'Bilinmeyen'} ${book.yazar_soyad || ''}</div>
-                    <div class="book-info">📁 ${book.katagori_adi || 'Kategori yok'}</div>
-                    <div class="book-info">📅 ${book.yayin_yili || '-'}</div>
-                    <span class="book-stock ${book.musait_adet > 0 ? 'stock-available' : 'stock-unavailable'}">
-                        ${book.musait_adet > 0 ? `✓ ${book.musait_adet} adet mevcut` : '✗ Stokta yok'}
-                    </span>
-                    <button class="btn-borrow" 
-                            onclick="borrowBook(${book.kitapID})" 
-                            ${book.musait_adet <= 0 ? 'disabled' : ''}>
-                        Ödünç Al
-                    </button>
+    <div class="container mt-5">
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card bg-gradient text-white" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                    <div class="card-body py-4">
+                        <h1 class="display-5 fw-bold">
+                            <i class="fas fa-book-reader"></i> 
+                            Hoşgeldiniz, <span id="welcomeName">Kullanıcı</span>!
+                        </h1>
+                        <p class="lead mb-0">Kütüphane Yönetim Sistemi</p>
+                    </div>
                 </div>
-            `).join('');
+            </div>
+        </div>
+        
+        <div class="row mb-4">
+            <div class="col-md-3 mb-3">
+                <div class="stat-card">
+                    <i class="fas fa-books stat-icon text-primary"></i>
+                    <h3 class="fw-bold" id="totalBooks">0</h3>
+                    <p class="text-muted mb-0">Toplam Kitap</p>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="stat-card">
+                    <i class="fas fa-check-circle stat-icon text-success"></i>
+                    <h3 class="fw-bold" id="availableBooks">0</h3>
+                    <p class="text-muted mb-0">Mevcut Kitap</p>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="stat-card">
+                    <i class="fas fa-bookmark stat-icon text-warning"></i>
+                    <h3 class="fw-bold" id="myLoans">0</h3>
+                    <p class="text-muted mb-0">Ödünç Aldığım</p>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="stat-card">
+                    <i class="fas fa-users stat-icon text-info"></i>
+                    <h3 class="fw-bold" id="totalUsers">-</h3>
+                    <p class="text-muted mb-0">Toplam Kullanıcı</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row">
+            <div class="col-12 mb-3">
+                <h2 class="text-white fw-bold">
+                    <i class="fas fa-bolt"></i> Hızlı Erişim
+                </h2>
+            </div>
+            
+            <div class="col-md-4 mb-3">
+                <div class="card">
+                    <div class="card-body text-center p-4">
+                        <i class="fas fa-book fa-3x text-primary mb-3"></i>
+                        <h5 class="fw-bold">Kitapları Görüntüle</h5>
+                        <p class="text-muted">Tüm kitapları listele ve ödünç al</p>
+                        <a href="/admin/books" class="btn btn-primary">
+                            <i class="fas fa-arrow-right"></i> Git
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4 mb-3">
+                <div class="card">
+                    <div class="card-body text-center p-4">
+                        <i class="fas fa-bookmark fa-3x text-warning mb-3"></i>
+                        <h5 class="fw-bold">Ödünç Aldıklarım</h5>
+                        <p class="text-muted">Kitaplarınızı görüntüleyin ve iade edin</p>
+                        <a href="/my-loans" class="btn btn-warning">
+                            <i class="fas fa-arrow-right"></i> Git
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4 mb-3">
+                <div class="card">
+                    <div class="card-body text-center p-4">
+                        <i class="fas fa-chart-line fa-3x text-success mb-3"></i>
+                        <h5 class="fw-bold">İstatistikler</h5>
+                        <p class="text-muted">Detaylı raporları görüntüle</p>
+                        <button class="btn btn-success" disabled>
+                            <i class="fas fa-lock"></i> Yakında
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const token = localStorage.getItem('token');
+        if (!token) {
+            window.location.href = '/login';
         }
         
-        function searchBooks() {
-            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-            const filtered = allBooks.filter(book => 
-                book.baslik.toLowerCase().includes(searchTerm) ||
-                (book.yazar_ad && book.yazar_ad.toLowerCase().includes(searchTerm)) ||
-                (book.yazar_soyad && book.yazar_soyad.toLowerCase().includes(searchTerm))
-            );
-            displayBooks(filtered);
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
+        if (user.name || user.full_name) {
+            document.getElementById('userName').textContent = user.name || user.full_name;
+            document.getElementById('welcomeName').textContent = user.name || user.full_name;
         }
         
-        async function borrowBook(kitapID) {
-            const token = localStorage.getItem('token');
-            
-            if (!confirm('Bu kitabı ödünç almak istediğinizden emin misiniz?')) return;
-            
+        async function loadStats() {
             try {
-                const response = await fetch(`${API_URL}/loans/borrow`, {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ kitapID })
+                const booksResponse = await fetch('/api/books', {
+                    headers: { 'Authorization': `Bearer ${token}` }
                 });
                 
-                const data = await response.json();
-                
-                if (data.success) {
-                    showAlert('Kitap başarıyla ödünç alındı!', 'success');
-                    loadBooks();
-                } else {
-                    showAlert(data.message, 'error');
+                if (booksResponse.ok) {
+                    const data = await booksResponse.json();
+                    const books = Array.isArray(data) ? data : (data.books || data.data || []);
+                    
+                    document.getElementById('totalBooks').textContent = books.length;
+                    const available = books.filter(b => b.available || b.is_available).length;
+                    document.getElementById('availableBooks').textContent = available;
                 }
+                
+                const loansResponse = await fetch('/api/loans/my-loans', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                if (loansResponse.ok) {
+                    const data = await loansResponse.json();
+                    const loans = Array.isArray(data) ? data : (data.loans || data.data || []);
+                    const activeLoans = loans.filter(l => !l.returned && !l.is_returned).length;
+                    document.getElementById('myLoans').textContent = activeLoans;
+                }
+                
             } catch (error) {
-                showAlert('İşlem sırasında hata oluştu!', 'error');
+                console.error('İstatistik yükleme hatası:', error);
             }
         }
         
         function logout() {
             localStorage.removeItem('token');
             localStorage.removeItem('user');
-            window.location.href = 'login.html';
+            window.location.href = '/login';
         }
+        
+        loadStats();
     </script>
 </body>
 </html>

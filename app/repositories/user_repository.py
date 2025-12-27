@@ -8,23 +8,28 @@ class UserRepository:
         """Yeni kullanıcı oluşturur"""
         query = """
             INSERT INTO KULLANICILAR (kullanici_adsoyad, kullanici_sifre, kullanici_rol, kullanici_eposta)
-            VALUES (?, ?, ?, ?)
+            VALUES (%s, %s, %s, %s)
+            RETURNING kullaniciID
         """
         params = (user.kullanici_adsoyad, user.kullanici_sifre, user.kullanici_rol, user.kullanici_eposta)
-        Database.execute_query(query, params)
-        return True
+        try:
+            result = Database.execute_query(query, params, fetch_one=True)
+            return result['kullaniciid'] if result else None
+        except Exception as e:
+            print(f"Kullanıcı oluşturma hatası: {e}")
+            return None
     
     @staticmethod
     def find_by_id(kullaniciID):
         """ID'ye göre kullanıcı getirir"""
-        query = "SELECT * FROM KULLANICILAR WHERE kullaniciID = ?"
+        query = "SELECT * FROM KULLANICILAR WHERE kullaniciID = %s"
         row = Database.execute_query(query, (kullaniciID,), fetch_one=True)
         return User.from_db_row(row) if row else None
     
     @staticmethod
     def find_by_email(email):
         """Email'e göre kullanıcı getirir"""
-        query = "SELECT * FROM KULLANICILAR WHERE kullanici_eposta = ?"
+        query = "SELECT * FROM KULLANICILAR WHERE kullanici_eposta = %s"
         row = Database.execute_query(query, (email,), fetch_one=True)
         return User.from_db_row(row) if row else None
     
@@ -40,8 +45,8 @@ class UserRepository:
         """Kullanıcı bilgilerini günceller"""
         query = """
             UPDATE KULLANICILAR 
-            SET kullanici_adsoyad = ?, kullanici_rol = ?, kullanici_eposta = ?
-            WHERE kullaniciID = ?
+            SET kullanici_adsoyad = %s, kullanici_rol = %s, kullanici_eposta = %s
+            WHERE kullaniciID = %s
         """
         params = (user.kullanici_adsoyad, user.kullanici_rol, user.kullanici_eposta, kullaniciID)
         Database.execute_query(query, params)
@@ -50,13 +55,13 @@ class UserRepository:
     @staticmethod
     def delete(kullaniciID):
         """Kullanıcı siler"""
-        query = "DELETE FROM KULLANICILAR WHERE kullaniciID = ?"
+        query = "DELETE FROM KULLANICILAR WHERE kullaniciID = %s"
         Database.execute_query(query, (kullaniciID,))
         return True
     
     @staticmethod
     def update_password(kullaniciID, new_password_hash):
         """Kullanıcı şifresini günceller"""
-        query = "UPDATE KULLANICILAR SET kullanici_sifre = ? WHERE kullaniciID = ?"
+        query = "UPDATE KULLANICILAR SET kullanici_sifre = %s WHERE kullaniciID = %s"
         Database.execute_query(query, (new_password_hash, kullaniciID))
         return True

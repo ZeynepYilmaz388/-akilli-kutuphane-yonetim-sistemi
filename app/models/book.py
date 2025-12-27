@@ -22,12 +22,13 @@ class Book:
     
     @staticmethod
     def from_db_row(row):
+        #veritabanından gelen satırı alır ve Book nesnesine dönüştürür
         if row:
             return Book(
-                kitapID=row['kitapID'],
-                baslik=row['baslik'],
-                yazarID=row.get('yazarID'),
-                kategoriID=row.get('kategoriID'),
+                kitapID=row.get('kitapid'),
+                baslik=row.get('baslik'),
+                yazarID=row.get('yazarid'),
+                kategoriID=row.get('kategoriid'),
                 yayin_yili=row.get('yayin_yili'),
                 stok_adedi=row.get('stok_adedi', 0),
                 musait_adet=row.get('musait_adet', 0)

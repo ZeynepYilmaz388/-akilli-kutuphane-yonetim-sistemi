@@ -1,3 +1,4 @@
+ #projenin calısması için gerekli kutuphaneler 
 Flask==3.0.0
 psycopg2-binary
 Flask-JWT-Extended==4.6.0

@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cezalarım - Kütüphane</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .navbar {
+            background: rgba(255, 255, 255, 0.95) !important;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .card {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+        .penalty-card {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transition: transform 0.3s;
+        }
+        .penalty-card:hover {
+            transform: translateY(-3px);
+        }
+        .penalty-paid {
+            opacity: 0.7;
+            background: #f8f9fa;
+        }
+        .penalty-unpaid {
+            border-left: 5px solid #dc3545;
+        }
+        .total-card {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    {% include 'navbar.html' %}
+
+    <div class="container mt-5">
+        <!-- Başlık -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card bg-gradient text-white" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                    <div class="card-body py-4">
+                        <h1 class="display-5 fw-bold">
+                            <i class="fas fa-exclamation-triangle"></i> Cezalarım
+                        </h1>
+                        <p class="lead mb-0">Gecikme cezaları ve ödeme durumu</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Toplam Ceza Kartı -->
+        <div class="row mb-4">
+            <div class="col-md-6 mx-auto">
+                <div class="total-card">
+                    <h3 class="fw-bold mb-3">
+                        <i class="fas fa-wallet"></i> Toplam Ödenmemiş Ceza
+                    </h3>
+                    <h1 class="display-3 fw-bold" id="totalUnpaid">0.00 ₺</h1>
+                    <p class="mb-0" id="unpaidCount">0 adet ödenmemiş ceza</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filtre Butonları -->
+        <div class="row mb-3">
+            <div class="col-12">
+                <div class="btn-group" role="group">
+                    <button type="button" class="btn btn-danger active" onclick="filterPenalties('all')">
+                        <i class="fas fa-list"></i> Tümü
+                    </button>
+                    <button type="button" class="btn btn-outline-danger" onclick="filterPenalties('unpaid')">
+                        <i class="fas fa-exclamation-circle"></i> Ödenmemiş
+                    </button>
+                    <button type="button" class="btn btn-outline-success" onclick="filterPenalties('paid')">
+                        <i class="fas fa-check-circle"></i> Ödenmiş
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Ceza Listesi -->
+        <div class="row">
+            <div class="col-12">
+                <div id="penaltiesList">
+                    <div class="text-center py-5">
+                        <div class="spinner-border text-white" role="status">
+                            <span class="visually-hidden">Yükleniyor...</span>
+                        </div>
+                        <p class="text-white mt-3">Cezalar yükleniyor...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Boş Durum -->
+        <div id="emptyState" class="text-center py-5" style="display: none;">
+            <i class="fas fa-smile-beam text-white" style="font-size: 5rem;"></i>
+            <h3 class="text-white mt-3 fw-bold">Harika! Hiç cezanız yok! 🎉</h3>
+            <p class="text-white">Kitaplarınızı zamanında iade ettiğiniz için teşekkürler.</p>
+            <a href="/admin/books" class="btn btn-light btn-lg mt-3">
+                <i class="fas fa-book"></i> Kitaplara Gözat
+            </a>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const token = localStorage.getItem('token');
+        if (!token) window.location.href = '/login';
+
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
+        if (user.name || user.full_name) {
+            document.getElementById('userName').textContent = user.name || user.full_name;
+        }
+
+        let allPenalties = [];
+        let currentFilter = 'all';
+
+        // Cezaları yükle
+        async function loadPenalties() {
+            try {
+                const response = await fetch('/api/penalties/my', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    allPenalties = data.penalties || [];
+                    
+                    // Toplam ödenmemiş ceza
+                    const unpaid = allPenalties.filter(p => p.odenme_durumu === 'odenmedi');
+                    const total = unpaid.reduce((sum, p) => sum + parseFloat(p.ceza_tutari || 0), 0);
+                    
+                    document.getElementById('totalUnpaid').textContent = total.toFixed(2) + ' ₺';
+                    document.getElementById('unpaidCount').textContent = `${unpaid.length} adet ödenmemiş ceza`;
+                    
+                    displayPenalties();
+                } else {
+                    showError('Cezalar yüklenirken bir hata oluştu!');
+                }
+            } catch (error) {
+                console.error('Ceza yükleme hatası:', error);
+                showError('Bağlantı hatası!');
+            }
+        }
+
+        // Cezaları göster
+        function displayPenalties() {
+            let filtered = allPenalties;
+            
+            if (currentFilter === 'unpaid') {
+                filtered = allPenalties.filter(p => p.odenme_durumu === 'odenmedi');
+            } else if (currentFilter === 'paid') {
+                filtered = allPenalties.filter(p => p.odenme_durumu === 'odendi');
+            }
+
+            const container = document.getElementById('penaltiesList');
+            const emptyState = document.getElementById('emptyState');
+
+            if (filtered.length === 0) {
+                container.style.display = 'none';
+                emptyState.style.display = 'block';
+                return;
+            }
+
+            container.style.display = 'block';
+            emptyState.style.display = 'none';
+
+            container.innerHTML = filtered.map(penalty => {
+                const isPaid = penalty.odenme_durumu === 'odendi';
+                const statusClass = isPaid ? 'penalty-paid' : 'penalty-unpaid';
+                const statusBadge = isPaid 
+                    ? '<span class="badge bg-success"><i class="fas fa-check"></i> Ödendi</span>'
+                    : '<span class="badge bg-danger"><i class="fas fa-exclamation"></i> Ödenmedi</span>';
+                
+                const payButton = !isPaid 
+                    ? `<button class="btn btn-success btn-sm" onclick="payPenalty(${penalty.cezaid})">
+                           <i class="fas fa-credit-card"></i> Öde
+                       </button>`
+                    : '';
+
+                return `
+                    <div class="penalty-card ${statusClass}">
+                        <div class="row align-items-center">
+                            <div class="col-md-6">
+                                <h5 class="fw-bold mb-2">
+                                    <i class="fas fa-book text-primary"></i> ${penalty.baslik || 'Kitap'}
+                                </h5>
+                                <p class="text-muted mb-1">
+                                    <i class="fas fa-user"></i> ${penalty.yazar || 'Bilinmiyor'}
+                                </p>
+                                <p class="text-muted mb-1">
+                                    <i class="fas fa-calendar"></i> Ödünç: ${formatDate(penalty.odunc_tarihi)}
+                                </p>
+                                <p class="text-muted mb-0">
+                                    <i class="fas fa-clock text-danger"></i> İade: ${formatDate(penalty.iade_tarihi)}
+                                </p>
+                            </div>
+                            <div class="col-md-3 text-center">
+                                <h3 class="fw-bold text-danger mb-2">${parseFloat(penalty.ceza_tutari || 0).toFixed(2)} ₺</h3>
+                                <p class="text-muted mb-0">
+                                    <i class="fas fa-hourglass-end"></i> ${penalty.gecikme_gun || 0} dakika gecikme
+                                </p>
+                                <small class="text-muted">Ceza Tarihi: ${formatDate(penalty.ceza_tarihi)}</small>
+                            </div>
+                            <div class="col-md-3 text-center">
+                                ${statusBadge}
+                                <div class="mt-2">
+                                    ${payButton}
+                                </div>
+                                ${isPaid ? `<small class="text-muted d-block mt-2">Ödeme: ${formatDate(penalty.odeme_tarihi)}</small>` : ''}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Ceza öde
+        async function payPenalty(cezaID) {
+            if (!confirm('Bu cezayı ödemek istediğinize emin misiniz?')) return;
+
+            try {
+                const response = await fetch(`/api/penalties/${cezaID}/pay`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.success) {
+                    alert(' ' + data.message);
+                    loadPenalties(); // Listeyi yenile
+                } else {
+                    alert(' Hata: ' + (data.message || 'Ceza ödenemedi!'));
+                }
+            } catch (error) {
+                console.error('Ceza ödeme hatası:', error);
+                alert(' Bağlantı hatası!');
+            }
+        }
+
+        // Filtrele
+        function filterPenalties(filter) {
+            currentFilter = filter;
+            
+            // Buton aktif durumunu güncelle
+            document.querySelectorAll('.btn-group button').forEach(btn => {
+                btn.classList.remove('active');
+                btn.classList.remove('btn-danger', 'btn-success');
+                if (filter === 'all' && btn.textContent.includes('Tümü')) {
+                    btn.classList.add('active', 'btn-danger');
+                } else if (filter === 'unpaid' && btn.textContent.includes('Ödenmemiş')) {
+                    btn.classList.add('active', 'btn-danger');
+                } else if (filter === 'paid' && btn.textContent.includes('Ödenmiş')) {
+                    btn.classList.add('active', 'btn-success');
+                } else {
+                    btn.classList.add(filter === 'paid' ? 'btn-outline-success' : 'btn-outline-danger');
+                }
+            });
+            
+            displayPenalties();
+        }
+
+        // Tarih formatla
+        function formatDate(dateString) {
+            if (!dateString) return '-';
+            const date = new Date(dateString);
+            return date.toLocaleDateString('tr-TR', { 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        // Hata göster
+        function showError(message) {
+            document.getElementById('penaltiesList').innerHTML = `
+                <div class="alert alert-danger" role="alert">
+                    <i class="fas fa-exclamation-triangle"></i> ${message}
+                </div>
+            `;
+        }
+
+        function logout() {
+            localStorage.clear();
+            window.location.href = '/login';
+        }
+
+        // Sayfa yüklenince
+        loadPenalties();
+    </script>
+</body>
+</html>

@@ -13,10 +13,11 @@ class Category:
     
     @staticmethod
     def from_db_row(row):
+        #veritabanından gelen satırı alır ve Category nesnesine dönüştürür
         if row:
             return Category(
-                kategoriID=row['kategoriID'],
-                katagori_adi=row['katagori_adi'],
+                kategoriID=row.get('kategoriid'),
+                katagori_adi=row.get('katagori_adi'),
                 aciklama=row.get('aciklama')
             )
         return None

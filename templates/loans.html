@@ -3,275 +3,337 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ödünçlerim - Kütüphane</title>
+    <title>Ödünç Aldıklarım - Kütüphane</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        .loan-card {
+            transition: all 0.3s ease;
         }
-        
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #f5f7fa;
+        .loan-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
         }
-        
-        .navbar {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 15px 30px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+        .overdue {
+            border-left: 5px solid #dc3545;
         }
-        
-        .navbar h1 {
-            font-size: 24px;
+        .due-soon {
+            border-left: 5px solid #ffc107;
         }
-        
-        .menu-links {
-            display: flex;
-            gap: 15px;
-        }
-        
-        .menu-links a {
-            color: white;
-            text-decoration: none;
-            font-weight: 500;
-        }
-        
-        .btn {
-            padding: 8px 20px;
-            background: white;
-            color: #667eea;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: 600;
-        }
-        
-        .container {
-            max-width: 1200px;
-            margin: 30px auto;
-            padding: 0 20px;
-        }
-        
-        .loans-table {
-            background: white;
-            border-radius: 10px;
-            padding: 20px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-        }
-        
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        
-        th {
-            background: #f8f9fa;
-            padding: 15px;
-            text-align: left;
-            font-weight: 600;
-            color: #333;
-        }
-        
-        td {
-            padding: 15px;
-            border-bottom: 1px solid #eee;
-        }
-        
-        .status-badge {
-            padding: 5px 12px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 600;
-        }
-        
-        .status-odunc {
-            background: #fff3cd;
-            color: #856404;
-        }
-        
-        .status-iade {
-            background: #d4edda;
-            color: #155724;
-        }
-        
-        .status-gecikme {
-            background: #f8d7da;
-            color: #721c24;
-        }
-        
-        .btn-return {
-            padding: 8px 16px;
-            background: #28a745;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: 600;
-        }
-        
-        .btn-return:hover {
-            background: #218838;
-        }
-        
-        .user-info {
-            display: flex;
-            gap: 20px;
-            align-items: center;
-        }
-        
-        .alert {
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            display: none;
-        }
-        
-        .alert.success {
-            background: #d4edda;
-            color: #155724;
-        }
-        
-        .alert.error {
-            background: #f8d7da;
-            color: #721c24;
-        }
-        
-        .alert.show {
-            display: block;
+        .on-time {
+            border-left: 5px solid #28a745;
         }
     </style>
 </head>
 <body>
-    <div class="navbar">
-        <h1>📚 Ödünçlerim</h1>
-        <div class="user-info">
-            <div class="menu-links">
-                <a href="dashboard.html">Ana Sayfa</a>
-                <a href="my_loans.html">Ödünçlerim</a>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="/dashboard">
+                <i class="fas fa-book"></i> Kütüphane
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/dashboard">
+                            <i class="fas fa-home"></i> Ana Sayfa
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/admin/books">
+                            <i class="fas fa-book"></i> Kitaplar
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/my-loans">
+                            <i class="fas fa-bookmark"></i> Ödünç Aldıklarım
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" onclick="logout()">
+                            <i class="fas fa-sign-out-alt"></i> Çıkış
+                        </a>
+                    </li>
+                </ul>
             </div>
-            <button class="btn" onclick="logout()">Çıkış</button>
+        </div>
+    </nav>
+
+    <!-- Ana İçerik -->
+    <div class="container mt-5">
+        <!-- Başlık Banner -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card text-white" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                    <div class="card-body py-4">
+                        <h1 class="display-5 fw-bold mb-2">
+                            <i class="fas fa-bookmark"></i>
+                            Ödünç Aldığım Kitaplar
+                        </h1>
+                        <p class="lead mb-0">
+                            İade tarihleri ve kitap durumları
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Yükleniyor Göstergesi -->
+        <div id="loadingIndicator" class="text-center py-5">
+            <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
+                <span class="visually-hidden">Yükleniyor...</span>
+            </div>
+            <p class="mt-3 text-muted">Ödünç kayıtlarınız yükleniyor...</p>
+        </div>
+
+        <!-- Ödünç Listesi -->
+        <div id="loansList" class="row" style="display: none;">
+            <!-- Buraya JavaScript ile ödünç kayıtları eklenecek -->
         </div>
     </div>
-    
-    <div class="container">
-        <div id="alertBox" class="alert"></div>
-        
-        <div class="loans-table">
-            <h2 style="margin-bottom: 20px;">Ödünç Aldığım Kitaplar</h2>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Kitap</th>
-                        <th>Yazar</th>
-                        <th>Ödünç Tarihi</th>
-                        <th>İade Tarihi</th>
-                        <th>Durum</th>
-                        <th>İşlem</th>
-                    </tr>
-                </thead>
-                <tbody id="loansTableBody"></tbody>
-            </table>
-        </div>
-    </div>
-    
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        const API_URL = 'http://localhost:5000/api';
-        
+        // Token kontrolü
+        const token = localStorage.getItem('token');
+        if (!token) {
+            alert('Lütfen giriş yapın!');
+            window.location.href = '/login';
+        }
+
+        // Sayfa yüklendiğinde ödünç kayıtlarını getir
         window.onload = function() {
-            const token = localStorage.getItem('token');
-            if (!token) {
-                window.location.href = 'login.html';
-                return;
-            }
             loadMyLoans();
         };
-        
-        function showAlert(message, type) {
-            const alertBox = document.getElementById('alertBox');
-            alertBox.textContent = message;
-            alertBox.className = `alert ${type} show`;
-            setTimeout(() => alertBox.classList.remove('show'), 5000);
-        }
-        
+
+        //  ÖDÜNÇ KAYITLARINI YÜKLE
         async function loadMyLoans() {
-            const token = localStorage.getItem('token');
-            
             try {
-                const response = await fetch(`${API_URL}/loans/my-loans`, {
-                    headers: {'Authorization': `Bearer ${token}`}
+                console.log(' Ödünç kayıtları yükleniyor...');
+                
+                const response = await fetch('/api/loans/my-loans', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
                 });
-                
+
+                console.log('Response status:', response.status);
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
                 const data = await response.json();
-                
-                if (data.success) {
+                console.log('Response data:', data);
+
+                // Yükleme göstergesini gizle
+                document.getElementById('loadingIndicator').style.display = 'none';
+                document.getElementById('loansList').style.display = 'flex';
+
+                if (data.success && data.loans) {
                     displayLoans(data.loans);
+                } else {
+                    showEmptyState();
                 }
             } catch (error) {
-                showAlert('Ödünçler yüklenirken hata oluştu!', 'error');
+                console.error(' Hata:', error);
+                document.getElementById('loadingIndicator').style.display = 'none';
+                document.getElementById('loansList').style.display = 'flex';
+                showError(error.message);
             }
         }
-        
+
+        //  ÖDÜNÇ KAYITLARINI GÖSTER
         function displayLoans(loans) {
-            const tbody = document.getElementById('loansTableBody');
+            const loansList = document.getElementById('loansList');
             
-            if (loans.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Ödünç kaydı bulunamadı.</td></tr>';
+            if (!loans || loans.length === 0) {
+                showEmptyState();
+                return;
+            }
+
+            let html = '';
+            loans.forEach(loan => {
+                // Tarih hesaplamaları
+                const borrowDate = new Date(loan.odunc_tarihi);
+                const dueDate = new Date(loan.iade_tarihi);
+                const today = new Date();
+                const daysLeft = Math.ceil((dueDate - today) / (1000 * 60 ));
+                
+                // Durum belirleme
+                let cardClass = 'on-time';
+                let statusBadge = 'bg-success';
+                let statusText = 'Normal';
+                let statusIcon = 'fa-check-circle';
+                
+                if (loan.durum === 'iade') {
+                    cardClass = '';
+                    statusBadge = 'bg-secondary';
+                    statusText = 'İade Edildi';
+                    statusIcon = 'fa-check-double';
+                } else if (daysLeft < 0) {
+                    cardClass = 'overdue';
+                    statusBadge = 'bg-danger';
+                    statusText = 'Gecikmiş!';
+                    statusIcon = 'fa-exclamation-triangle';
+                } else if (daysLeft <= 3) {
+                    cardClass = 'due-soon';
+                    statusBadge = 'bg-warning text-dark';
+                    statusText = 'Yaklaşıyor';
+                    statusIcon = 'fa-clock';
+                }
+
+                html += `
+                    <div class="col-md-6 col-lg-4 mb-4">
+                        <div class="card loan-card ${cardClass} h-100">
+                            <div class="card-body">
+                                <!-- Başlık ve Durum -->
+                                <div class="d-flex justify-content-between align-items-start mb-3">
+                                    <h5 class="card-title fw-bold mb-0" style="flex: 1;">
+                                        ${loan.baslik || 'Kitap Adı'}
+                                    </h5>
+                                    <span class="badge ${statusBadge} ms-2">
+                                        <i class="fas ${statusIcon}"></i> ${statusText}
+                                    </span>
+                                </div>
+
+                                <!-- Kitap Bilgileri -->
+                                <div class="mb-3">
+                                    ${loan.yazar ? `
+                                        <p class="mb-2 text-muted">
+                                            <i class="fas fa-user text-primary"></i>
+                                            <strong>Yazar:</strong> ${loan.yazar}
+                                        </p>
+                                    ` : ''}
+                                    
+                                    <p class="mb-2 text-muted">
+                                        <i class="fas fa-calendar-plus text-info"></i>
+                                        <strong>Ödünç Alma:</strong><br>
+                                        ${borrowDate.toLocaleDateString('tr-TR')}
+                                    </p>
+                                    
+                                    <p class="mb-2">
+                                        <i class="fas fa-calendar-check text-warning"></i>
+                                        <strong>İade Tarihi:</strong><br>
+                                        <span class="fw-bold text-primary">
+                                            ${dueDate.toLocaleDateString('tr-TR')}
+                                        </span>
+                                    </p>
+                                    
+                                    ${loan.durum === 'odunc' ? `
+                                        <p class="mb-0">
+                                            <i class="fas fa-hourglass-half text-danger"></i>
+                                            <strong>Kalan Süre:</strong>
+                                            ${daysLeft < 0 
+                                                ? `<span class="text-danger fw-bold">${Math.abs(daysLeft)} gün gecikmiş!</span>`
+                                                : daysLeft === 0
+                                                ? `<span class="text-warning fw-bold">Bugün son gün!</span>`
+                                                : daysLeft === 1
+                                                ? `<span class="text-warning fw-bold">1 gün kaldı</span>`
+                                                : `<span class="fw-bold">${daysLeft} gün</span>`
+                                            }
+                                        </p>
+                                    ` : ''}
+
+                                    ${loan.gercek_iade_tarihi ? `
+                                        <p class="mb-0">
+                                            <i class="fas fa-check text-success"></i>
+                                            <strong>İade Edildi:</strong><br>
+                                            ${new Date(loan.gercek_iade_tarihi).toLocaleDateString('tr-TR')}
+                                        </p>
+                                    ` : ''}
+                                </div>
+
+                                <!-- İade Butonu -->
+                                ${loan.durum === 'odunc' ? `
+                                    <button onclick="returnBook(${loan.oduncid})" class="btn btn-success w-100">
+                                        <i class="fas fa-undo"></i> Kitabı İade Et
+                                    </button>
+                                ` : ''}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            loansList.innerHTML = html;
+        }
+
+        //  BOŞ DURUM GÖSTER
+        function showEmptyState() {
+            const loansList = document.getElementById('loansList');
+            loansList.innerHTML = `
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-body text-center py-5">
+                            <i class="fas fa-inbox fa-5x text-muted mb-4"></i>
+                            <h3 class="text-muted">Henüz Ödünç Aldığınız Kitap Yok</h3>
+                            <p class="text-muted mb-4">Kütüphanemizdeki kitapları keşfedin!</p>
+                            <a href="/admin/books" class="btn btn-primary btn-lg">
+                                <i class="fas fa-book"></i> Kitaplara Göz At
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        //  HATA GÖSTER
+        function showError(message) {
+            const loansList = document.getElementById('loansList');
+            loansList.innerHTML = `
+                <div class="col-12">
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <strong>Hata:</strong> ${message}
+                    </div>
+                </div>
+            `;
+        }
+
+        //  KİTABI İADE ET
+        async function returnBook(loanId) {
+            if (!confirm('Bu kitabı iade etmek istediğinize emin misiniz?')) {
                 return;
             }
             
-            tbody.innerHTML = loans.map(loan => `
-                <tr>
-                    <td>${loan.baslik}</td>
-                    <td>${loan.yazar}</td>
-                    <td>${new Date(loan.odunc_tarihi).toLocaleDateString('tr-TR')}</td>
-                    <td>${new Date(loan.iade_tarihi).toLocaleDateString('tr-TR')}</td>
-                    <td>
-                        <span class="status-badge status-${loan.durum}">
-                            ${loan.durum === 'odunc' ? 'Ödünçte' : loan.durum === 'iade' ? 'İade Edildi' : 'Gecikme'}
-                        </span>
-                        ${loan.gecikme_gun > 0 ? `<span style="color:red; font-size:12px;">(${loan.gecikme_gun} gün gecikme)</span>` : ''}
-                    </td>
-                    <td>
-                        ${loan.durum === 'odunc' ? 
-                            `<button class="btn-return" onclick="returnBook(${loan.oduncID})">İade Et</button>` : 
-                            '-'}
-                    </td>
-                </tr>
-            `).join('');
-        }
-        
-        async function returnBook(oduncID) {
-            const token = localStorage.getItem('token');
-            
-            if (!confirm('Bu kitabı iade etmek istediğinizden emin misiniz?')) return;
-            
             try {
-                const response = await fetch(`${API_URL}/loans/return/${oduncID}`, {
+                console.log(` İade isteği: Loan ID ${loanId}`);
+                
+                const response = await fetch(`/api/loans/return/${loanId}`, {
                     method: 'POST',
-                    headers: {'Authorization': `Bearer ${token}`}
+                    headers: { 
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
                 });
                 
                 const data = await response.json();
+                console.log('İade response:', data);
                 
                 if (data.success) {
-                    showAlert('Kitap başarıyla iade edildi!', 'success');
-                    loadMyLoans();
+                    alert(' ' + (data.message || 'Kitap başarıyla iade edildi!'));
+                    loadMyLoans(); // Listeyi yenile
                 } else {
-                    showAlert(data.message, 'error');
+                    alert(' ' + (data.message || 'Bir hata oluştu'));
                 }
+                
             } catch (error) {
-                showAlert('İşlem sırasında hata oluştu!', 'error');
+                console.error(' İade hatası:', error);
+                alert(' Hata: ' + error.message);
             }
         }
-        
+
+        //  ÇIKIŞ
         function logout() {
-            localStorage.removeItem('token');
-            localStorage.removeItem('user');
-            window.location.href = 'login.html';
+            if (confirm('Çıkış yapmak istediğinize emin misiniz?')) {
+                localStorage.removeItem('token');
+                localStorage.removeItem('user');
+                window.location.href = '/login';
+            }
         }
     </script>
 </body>

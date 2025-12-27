@@ -3,7 +3,7 @@ from dotenv import load_dotenv
 from datetime import timedelta
 
 load_dotenv()
-
+# veri tabanı baglantı adresi ve jwt gizli anahtarı gibi ayarların tutulduğu yer
 class Config:
     # PostgreSQL Configuration
     DB_HOST = os.getenv('DB_HOST', 'localhost')

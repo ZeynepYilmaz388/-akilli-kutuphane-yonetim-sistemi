@@ -10,7 +10,8 @@ class BookService:
             books = BookRepository.find_all()
             return {'success': True, 'books': books}
         except Exception as e:
-            return {'success': False, 'message': f'Kitaplar getirilemedi: {str(e)}'}
+            print(f"Get all books service hatası: {e}")
+            return {'success': False, 'message': f'Kitaplar getirilemedi: {str(e)}', 'books': []}
     
     @staticmethod
     def get_book_by_id(kitapID):
@@ -21,6 +22,7 @@ class BookService:
                 return {'success': True, 'book': book.to_dict()}
             return {'success': False, 'message': 'Kitap bulunamadı!'}
         except Exception as e:
+            print(f"Get book by id service hatası: {e}")
             return {'success': False, 'message': f'Kitap getirilemedi: {str(e)}'}
     
     @staticmethod
@@ -30,7 +32,8 @@ class BookService:
             books = BookRepository.search_by_title(title)
             return {'success': True, 'books': books}
         except Exception as e:
-            return {'success': False, 'message': f'Arama hatası: {str(e)}'}
+            print(f"Search books service hatası: {e}")
+            return {'success': False, 'message': f'Arama hatası: {str(e)}', 'books': []}
     
     @staticmethod
     def get_available_books():
@@ -39,7 +42,8 @@ class BookService:
             books = BookRepository.get_available_books()
             return {'success': True, 'books': books}
         except Exception as e:
-            return {'success': False, 'message': f'Kitaplar getirilemedi: {str(e)}'}
+            print(f"Get available books service hatası: {e}")
+            return {'success': False, 'message': f'Kitaplar getirilemedi: {str(e)}', 'books': []}
     
     @staticmethod
     def create_book(baslik, yazarID, kategoriID, yayin_yili, stok_adedi):
@@ -53,9 +57,13 @@ class BookService:
                 stok_adedi=stok_adedi,
                 musait_adet=stok_adedi
             )
-            BookRepository.create(book)
-            return {'success': True, 'message': 'Kitap başarıyla eklendi!'}
+            result = BookRepository.create(book)
+            if result:
+                return {'success': True, 'message': 'Kitap başarıyla eklendi!'}
+            else:
+                return {'success': False, 'message': 'Kitap eklenemedi!'}
         except Exception as e:
+            print(f"Create book service hatası: {e}")
             return {'success': False, 'message': f'Kitap eklenemedi: {str(e)}'}
     
     @staticmethod
@@ -71,16 +79,24 @@ class BookService:
                 stok_adedi=stok_adedi,
                 musait_adet=musait_adet
             )
-            BookRepository.update(kitapID, book)
-            return {'success': True, 'message': 'Kitap başarıyla güncellendi!'}
+            result = BookRepository.update(kitapID, book)
+            if result:
+                return {'success': True, 'message': 'Kitap başarıyla güncellendi!'}
+            else:
+                return {'success': False, 'message': 'Kitap güncellenemedi!'}
         except Exception as e:
+            print(f"Update book service hatası: {e}")
             return {'success': False, 'message': f'Kitap güncellenemedi: {str(e)}'}
     
     @staticmethod
     def delete_book(kitapID):
         """Kitap siler"""
         try:
-            BookRepository.delete(kitapID)
-            return {'success': True, 'message': 'Kitap başarıyla silindi!'}
+            result = BookRepository.delete(kitapID)
+            if result:
+                return {'success': True, 'message': 'Kitap başarıyla silindi!'}
+            else:
+                return {'success': False, 'message': 'Kitap silinemedi!'}
         except Exception as e:
+            print(f"Delete book service hatası: {e}")
             return {'success': False, 'message': f'Kitap silinemedi: {str(e)}'}

@@ -8,7 +8,7 @@ class CategoryRepository:
         """Yeni kategori ekler"""
         query = """
             INSERT INTO KATEGORILER (katagori_adi, aciklama)
-            VALUES (?, ?)
+            VALUES (%s, %s)
         """
         params = (category.katagori_adi, category.aciklama)
         Database.execute_query(query, params)
@@ -17,7 +17,7 @@ class CategoryRepository:
     @staticmethod
     def find_by_id(kategoriID):
         """ID'ye göre kategori getirir"""
-        query = "SELECT * FROM KATEGORILER WHERE kategoriID = ?"
+        query = "SELECT * FROM KATEGORILER WHERE kategoriID = %s"
         row = Database.execute_query(query, (kategoriID,), fetch_one=True)
         return Category.from_db_row(row) if row else None
     
@@ -33,8 +33,8 @@ class CategoryRepository:
         """Kategori bilgilerini günceller"""
         query = """
             UPDATE KATEGORILER 
-            SET katagori_adi = ?, aciklama = ?
-            WHERE kategoriID = ?
+            SET katagori_adi = %s, aciklama = %s
+            WHERE kategoriID = %s
         """
         params = (category.katagori_adi, category.aciklama, kategoriID)
         Database.execute_query(query, params)
@@ -43,6 +43,6 @@ class CategoryRepository:
     @staticmethod
     def delete(kategoriID):
         """Kategori siler"""
-        query = "DELETE FROM KATEGORILER WHERE kategoriID = ?"
+        query = "DELETE FROM KATEGORILER WHERE kategoriID = %s"
         Database.execute_query(query, (kategoriID,))
         return True
